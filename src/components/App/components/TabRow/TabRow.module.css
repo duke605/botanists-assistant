@@ -1,0 +1,8 @@
+.tabRow {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  top: 1px;
+  flex: 0 1;
+  flex-basis: min-content;
+}

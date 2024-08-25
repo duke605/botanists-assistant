@@ -1,0 +1,55 @@
+.button {
+  height: 30px;
+  position: relative;
+  background: url(../../assets/buttonRight.png) no-repeat top right / auto 100%,
+              url(../../assets/buttonLeft.png) no-repeat top left / auto 100%,
+              url(../../assets/buttonMiddle.png) content-box top center / auto 100%;
+  cursor: pointer;
+  text-align: center;
+  color: #000;
+  font-family: 'trajan-pro-3';
+  text-shadow: 1px 1px 2px #ecc622;
+  font-size: 16px;
+  margin: 5px;
+  padding: 0px 10px;
+  line-height: 30px;
+  user-select: none;
+  border: none;
+}
+
+.danger {
+  background-image: url(../../assets/destructiveButtonRight.png),
+                    url(../../assets/destructiveButtonLeft.png),
+                    url(../../assets/destructiveButtonMiddle.png);
+  text-shadow: 1px 1px 2px #c86e3e;
+}
+
+.button:hover {
+  filter: brightness(1.2);
+}
+
+/* .button::before {
+  width: 12px;
+  height: 100%;
+  content: "";
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  background: url(../../assets/button.png) 0px 0px / 24px 400%;
+}
+
+.button::after {
+  width: 12px;
+  height: 100%;
+  content: "";
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  background: url(../../assets/button.png) -12px 0px / 24px 400%;
+} */
+
+.button[disabled] {
+  opacity: .5;
+  cursor: default;
+  pointer-events: none;
+}

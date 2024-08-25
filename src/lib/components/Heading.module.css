@@ -1,0 +1,23 @@
+.root {
+  color: #ffcb05;
+  text-transform: uppercase;
+  font-family: serif;
+  text-shadow: 1px 1px 1px #110706;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: normal;
+  grid-column: span 2;
+  margin: 3px 0;
+  height: 57px;
+  width: 80%;
+  padding: 0 33px;
+  margin: 0 auto 8px;
+  background: url(../../assets/headerLeft.png) center left no-repeat,
+              url(../../assets/headerRight.png) center right no-repeat,
+              url(../../assets/headerMiddle.png) center center repeat content-box;
+}
+
+.root:not(:first-child) {
+  margin-top: 16px;
+}

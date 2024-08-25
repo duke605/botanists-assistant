@@ -1,0 +1,19 @@
+.checkbox {
+  background: url(../../assets/checkbox.png);
+  width: 16px;
+  height: 16px;
+  appearance: none;
+  display: inline-block;
+  outline: none;
+  cursor: pointer;
+  margin: 0;
+}
+
+.checkbox:hover {
+  filter: brightness(1.2);
+}
+
+.checkbox:checked {
+  background: url(../../assets/check.png) center center no-repeat,
+              url(../../assets/checkbox.png) center center no-repeat;
+}

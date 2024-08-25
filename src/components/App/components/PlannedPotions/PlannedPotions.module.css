@@ -1,0 +1,34 @@
+.buttonRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.noPotions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 50px;
+}
+
+.noPotionsDesc {
+  text-align: center;
+  max-width: 80%;
+  margin: 0;
+}
+
+.linkLink:not([data-tooltip-html=""]) {
+  color: #8cabe6;
+  position: relative;
+  cursor: default;
+  border-bottom: 1px dashed #8cabe6;
+}
+
+.aggregateSetting {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}

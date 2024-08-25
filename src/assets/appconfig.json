@@ -1,0 +1,16 @@
+{
+	"appName": "Botanist's Assistant",
+	"description": "Keeps track of potions made and displays herblore information about ingredients",
+	"appUrl": "/botanists-assistant",
+	"configUrl": ".",
+	"iconUrl": "./icon.png",
+	"defaultWidth": 250,
+	"defaultHeight": 250,
+	"minWidth": 250,
+	"minHeight": 180,
+	"maxWidth": 1000,
+	"maxHeight": 1000,
+	"requestHandlers": [ ],
+	"activators": [	],
+	"permissions": "pixel,overlay,"
+}

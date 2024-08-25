@@ -1,0 +1,30 @@
+.button {
+  --default-bg: url(../../assets/tab.png) transparent no-repeat;
+
+  background: var(--default-bg);
+  height: 23px;
+  width: 40px;
+  line-height: 0;
+  font-size: 0;
+  cursor: pointer;
+  position: relative;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  filter: brightness(0.8);
+}
+
+.icon {
+  position: relative;
+  height: 85%;
+  pointer-events: none;
+}
+
+.button:hover, .active {
+  filter: brightness(1);
+}
+
+.active {
+  z-index: 2;
+}

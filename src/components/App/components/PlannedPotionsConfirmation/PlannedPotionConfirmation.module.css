@@ -1,0 +1,17 @@
+.linkLink:not([data-tooltip-html=""]) {
+  color: #8cabe6;
+  position: relative;
+  cursor: default;
+  border-bottom: 1px dashed #8cabe6;
+}
+
+.buttonRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.buttonRow button {
+  margin: 0;
+}
