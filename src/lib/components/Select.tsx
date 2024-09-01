@@ -1,6 +1,5 @@
 import ReactSelect, { CSSObjectWithLabel, StylesConfig } from 'react-select';
 import selectBg from '@assets/selectMiddle.png';
-import potions from '@data/potions.json';
 import caret from '@assets/carot.png';
 
 const common: CSSObjectWithLabel = {

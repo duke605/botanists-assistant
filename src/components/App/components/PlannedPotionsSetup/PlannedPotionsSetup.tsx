@@ -1,5 +1,5 @@
 import { Button, Checkbox, Heading, Select, TextField } from '@lib/components';
-import { PlannedPotionsState, PotionPlannerState, useBankedPotionInputs, usePlannedPotions, usePotionPlanner } from '@state/potions';
+import { PlannedPotionsState, useBankedPotionInputs, usePotionPlanner } from '@state/potions';
 import { Fragment, useCallback, useMemo, useState } from 'react';
 import modifiedBotanistMaskIcon from '@assets/Modified_botanist\'s_mask.png';
 import broochOfTheGodsIcon from '@assets/Brooch_of_the_Gods.png';

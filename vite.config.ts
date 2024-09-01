@@ -47,6 +47,22 @@ const alt1ImageLoader: Plugin = {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [alt1ImageLoader, virtualItemImages(), react()],
+  base: '/botanists-assistant',
+  build: {
+    assetsInlineLimit: (filepath) => {
+      const file = path.parse(filepath);
+      return file.name === 'appconfig' ? false : true;
+    },
+    rollupOptions: {
+      output: {
+        assetFileNames: (asset) => {
+          return asset.name !== 'appconfig.json'
+            ? 'assets/[name]-[hash][extname]'
+            : 'assets/[name][extname]';
+        }
+      }
+    }
+  },
   resolve: {
     alias: {
       '@lib': path.resolve(__dirname, './src/lib'),

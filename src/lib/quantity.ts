@@ -23,7 +23,7 @@ const numbers = webpackImages({
   '9': nine,
 });
 
-export const getQuantity = async (img: ImageData, def = 1) => {
+export const getQuantity = async (img: ImageData) => {
   const positions: {n: number, x: number}[] = [];
 
   for (const [ number, image ] of Object.entries(await numbers.promise)) {
