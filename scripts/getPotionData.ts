@@ -23,7 +23,6 @@ interface InfoboxItem {
   image: string;
   update: string;
   noteable: boolean;
-  isDefault: boolean;
   version?: string;
   tradable: 'YES' | 'NO' | 'RESTRICTED';
   release: string;
@@ -33,6 +32,7 @@ interface InfoboxItem {
   equipable: boolean;
   stackable: boolean;
   removal?: string;
+  flask?: true;
 }
 
 const templateToString = (template: Template) => {
@@ -135,12 +135,12 @@ const parseInfoboxItem = (client: Mwn, tmpl: Template) => {
   }
 
   const versions = getVersions();
-  const defver = tmpl.getValue('defver') ?? versions[0];
   try {
     for (const v of versions) {
       const imageWikiText = new client.Wikitext(getVersionedParam(v, 'image')!);
       imageWikiText.parseLinks();
       const item = {
+        flask: tmpl.getValue('flask') === 'yes' || undefined,
         id: +getVersionedParam(v, 'id')!,
         name: getVersionedParam(v, 'name')!,
         update: getVersionedParam(v, 'update')!,
@@ -155,11 +155,10 @@ const parseInfoboxItem = (client: Mwn, tmpl: Template) => {
         quest: (getVersionedParam(v, 'quest')?.toLowerCase() ?? 'no') === 'no',
         members: convertYesOrNoToBoolean(getVersionedParam(v, 'members')!),
         removal: getVersionedParam(v, 'removal') ?? undefined,
-        isDefault: v === defver,
         image: `https://runescape.wiki/images/${imageWikiText.files[0].target.getMain()}`,
       };
 
-      const required = ['id', 'name', 'update', 'release', 'weight', 'examine', 'tradable', 'noteable', 'equipable', 'stackable', 'quest', 'members', 'isDefault', 'image'];
+      const required = ['id', 'name', 'update', 'release', 'weight', 'examine', 'tradable', 'noteable', 'equipable', 'stackable', 'quest', 'members', 'image'];
       for (const field of required) {
         const value = item[field];
 
@@ -243,10 +242,14 @@ const isValidPotion = (client: Mwn, page: Page) => {
   if (page.title === 'Blessed flask') return false;
   if (page.title === 'Coconut milk') return false;
   if (page.title === 'Antidote') return false;
-  if (!page.categories?.some(c => c.title === 'Category:Items')) return false;
-  if (page.categories?.some(c => c.title === 'Category:Quest items')) return false;
-  if (page.categories?.some(c => c.title === 'Category:Permanently discontinued items')) return false;
-  if (page.categories?.some(c => c.title === 'Category:Minigame items')) return false;
+  if (!page.categories?.some(c => c.title === 'Category:Items')) return false; 
+  if (page.categories?.some(c =>
+    c.title === 'Category:Quest items' ||
+    c.title === 'Category:Permanently discontinued items' ||
+    c.title === 'Category:Items that have never been re-released' ||
+    c.title === 'Category:Items that may not be currently obtainable' ||
+    c.title === 'Category:Minigame items'
+  )) return false;
   if (!page.revisions[0]?.slots?.main?.content) return false;
 
   const wikiText = page.revisions[0].slots.main.content;
@@ -270,7 +273,7 @@ const isValidPotion = (client: Mwn, page: Page) => {
   });
   await client.getSiteInfo();
 
-  const allPotions: Page[] = [];
+  const allPotionPages: Page[] = [];
   let cont: Record<string, string> | undefined;
   do {
     const result = await client.query({
@@ -291,18 +294,55 @@ const isValidPotion = (client: Mwn, page: Page) => {
     await fixPages(client, pages);
     const potions = pages.filter(p => isValidPotion(client, p));
     
-    allPotions.push(...potions);
+    allPotionPages.push(...potions);
   } while (cont);
+
+  // Getting flasks
+  const flaskPages = [] as {title: string, page: Page}[];
+  for (const page of allPotionPages) {
+    const otherUsePotionTemplate = new client.Wikitext(page.revisions[0].slots.main.content).parseTemplates({namePredicate: (name) => name.toLowerCase() === 'oupotion'})[0];
+    if (!otherUsePotionTemplate) continue;
+
+    flaskPages.push({
+      title: otherUsePotionTemplate.getValue('flask') ?? (page.title.replace(/[Pp]otion$/, '').trim() + ' flask'),
+      page,
+    });
+  }
+
+  while (flaskPages.length > 0) {
+    const slice = flaskPages.splice(0, 10);
+    const result = await client.query({
+      format: 'json',
+      prop: 'revisions|categories',
+      titles: slice.map(s => s.title).join('|'),
+      cllimit: 500,
+      formatversion: 2,
+      rvprop: 'content',
+      rvslots: 'main',
+    });
+    const pages = result.query!.pages as Page[];
+
+    for (const flaskPage of pages) {
+      const unnormalizedName = result.query!.normalized?.find(n => n.to === flaskPage.title)?.from ?? flaskPage.title;
+      const potionPage = slice.find(p => p.title === unnormalizedName)!;
+      const infoboxItemTemplate = new client.Wikitext(flaskPage.revisions[0].slots.main.content).parseTemplates({namePredicate: (name) => name.toLowerCase() === 'infobox item'})[0]!;
+
+      infoboxItemTemplate.addParam('flask', 'yes', '|flask = yes');
+
+      potionPage.page.revisions[0].slots.main.content += templateToString(infoboxItemTemplate);
+    }
+  }
 
   const inputs = [] as string[];
   const deferredInputs: Function[] = [];
   const deferredRecipes: Function[] = [];
-  const db = allPotions.reduce((map, potion) => {
+  const db = allPotionPages.reduce((map, potion) => {
     let content = potion.revisions[0].slots.main.content
 
     const wikiText = new client.Wikitext(content);
     const templates = wikiText.parseTemplates({recursive: true});
-    const items = parseInfoboxItem(client, templates.find(t => (t.name as string).toLowerCase?.() === 'infobox item')!) as (InfoboxItem & {
+    const infoboxItemTemplates = templates.filter(t => (t.name as string).toLowerCase?.() === 'infobox item')
+    const items = infoboxItemTemplates.flatMap(t => parseInfoboxItem(client, t)) as (InfoboxItem & {
       doses?: number;
       pageName: string;
       pageId: number;
@@ -410,178 +450,6 @@ const isValidPotion = (client: Mwn, page: Page) => {
 
   for (const fn of deferredRecipes) await fn();
 
+  delete (db as any)['idLookup'];
   fs.writeFileSync('src/data/herbloreItems.json', JSON.stringify(db, null, '  '));
-
-  // Downloading images
-  // for (const item of Object.values(db.items) as any[]) {
-  //   const image = item.image;
-  //   const url = new URL(item.image);
-
-  //   await client.downloadFromUrl(image, `src/assets/potions/${url.pathname.split('/').slice(-1)}`);
-  // }
 })();
-
-
-// interface Input {
-//   readonly name: string,
-//   readonly dosesOrQty: number,
-//   readonly isSecondary: boolean,
-// }
-
-// interface Recipe {
-//   readonly name: string,
-//   readonly outputDosesOrQty: number,
-//   readonly inputs: Input[],
-//   readonly overrideDuplicateDoses?: number,
-// }
-
-// interface Potion {
-//   readonly name: string;
-//   readonly usesDoses: boolean;
-//   readonly recipes: Recipe[];
-//   readonly images: {
-//     doseOrQty: number;
-//     image: string;
-//   }[];
-// }
-
-// const POTION_REGEX = /^(?<name>.+) \((?<doses>\d)\)/;
-// const DOWNLOAD_IMAGES = false;
-
-// const createPotion = async (client: Mwn, name: string, potions: Potion[]) => {
-//   if (potions.find(p => p.name === name)) return;
-
-//   const data = await client.query({
-//     format: 'json',
-//     prop: 'revisions',
-//     rvprop: 'content',
-//     rvslots: 'main',
-//     titles: name,
-//     formatversion: 2,
-//     redirects: 1,
-//   });
-
-//   name = data.query!.pages[0].title;
-//   if (potions.find(p => p.name === name)) return;
-
-//   const text = data.query!.pages[0].revisions[0].slots.main.content;
-//   const templates = client.Wikitext.parseTemplates(text, {recursive: true});
-//   const switchInfobox = templates.find(t => (t.name as string).toLowerCase?.() === 'switch infobox');
-//   let recipeInfoboxes = templates.filter(t => (t.name as string).toLowerCase?.() === 'infobox recipe');
-//   const recipes: Recipe[] = [];
-//   const images: Potion['images'] = [];
-
-//   const infoboxItem = templates.find(t => (t.name as string).toLowerCase?.() === 'infobox item')!;
-//   if (!infoboxItem.getValue('version1') && !infoboxItem.getValue('name')?.endsWith('(unf)')) return;
-
-//   // Pushing early so potion discovery doesn't try to get the potion again
-//   potions.push({name, usesDoses: !!infoboxItem.getValue('version1'), recipes, images});
-
-//   // Reordering the recipes from the switch box so they line up with the names in the switchbox
-//   if (recipeInfoboxes.length > 1 && switchInfobox) {
-//     recipeInfoboxes = [];
-//     for (let i = 1; switchInfobox.getValue(`item${i}`); i++) {
-//       const templates = new client.Wikitext(switchInfobox.getValue(`item${i}`)!).parseTemplates({});
-//       recipeInfoboxes.push(templates[0]);
-//     }
-//   }
-
-//   // Downloading images
-//   const itemInfobox = templates.find(t => (t.name as string).toLowerCase?.() === 'infobox item')!;
-//   if (itemInfobox.getValue('image') && DOWNLOAD_IMAGES) {
-//     const mwt = new client.Wikitext(infoboxItem.getValue('image')!);
-//     mwt.parseLinks();
-//     const file = mwt.files[0].target.title;
-//     const filepath = `src/assets/potions/${file}`;
-
-//     await client.download(`File:${file}`, filepath);
-
-//     images.push({
-//       doseOrQty: 1,
-//       image: file,
-//     });
-//   } else if (DOWNLOAD_IMAGES) {
-//     for (let i = 1; itemInfobox.getValue(`name${i}`); i++) {
-//       const mwt = new client.Wikitext(infoboxItem.getValue(`image${i}`)!);
-//       mwt.parseLinks();
-//       const file = mwt.files[0].target.title;
-//       const filepath = `src/assets/potions/${file}`;
-
-//       await client.download(`File:${file}`, filepath);
-
-//       images.push({
-//         doseOrQty: i,
-//         image: file,
-//       });
-//     }
-//   }
-
-//   for (let i = 0; i < recipeInfoboxes.length; i++) {
-//     const recipeInfobox = recipeInfoboxes[i];
-//     const name = switchInfobox?.getValue(`text${i+1}`) ?? 'Regular';
-//     const inputs: Input[] = [];
-
-//     // Skipping unfinished recipes
-//     if (name.toLowerCase().includes('unfinished')) continue;
-
-//     for (let m = 1; ; m++) {
-//       let name = recipeInfobox.getValue(`mat${m}`);
-//       let dosesOrQty = +(recipeInfobox.getValue(`mat${m}qty`) ?? '1');
-//       if (!name) break;
-
-//       let isPotion = false;
-
-//       // Creating potion if material is potion
-//       const match = name.match(POTION_REGEX);
-//       if (match) {
-//         if (match.groups!.doses === 'unf') {
-//           await createPotion(client, name, potions)
-//         } else {
-//           name = match.groups!.name;
-//           isPotion = true;
-//           dosesOrQty *= +match.groups!.doses;
-//           await createPotion(client, match.groups!.name, potions);
-//         }
-//       }
-
-//       inputs.push({
-//         name,
-//         isSecondary: m > 1,
-//         dosesOrQty,
-//       });
-//     }
-
-//     const output = recipeInfobox.getValue(`output1`)!;
-//     let qty = +(recipeInfobox.getValue(`output1qty`) ?? '1');
-//     const match = output.match(POTION_REGEX);
-//     if (match!.groups!.doses !== 'unf') {
-//       qty *= +match!.groups!.doses;
-//     }
-
-//     recipes.push({
-//       name,
-//       outputDosesOrQty: qty,
-//       inputs,
-//       overrideDuplicateDoses: name.toLowerCase().includes('batch') ? +match?.groups!.doses! : undefined,
-//     });
-//   }
-// }
-
-// const potions: Potion[] = [];
-// const document = new JSDOM(rawHtml.parse.text).window.document;
-// const normalPotions = document.querySelector('#List_of_regular_potions')!.parentElement!.nextElementSibling!.querySelectorAll('.plinkt-link > a');
-// const comboPotions = document.querySelector('#Combination_potions')!.parentElement!.nextElementSibling!.nextElementSibling!.nextElementSibling!.querySelectorAll('.plinkt-link > a');
-// const potionLinks = [...normalPotions, ...comboPotions];
-
-// for (const potionLink of potionLinks) {
-//   const name = (potionLink as HTMLAnchorElement).textContent!;
-
-//   try {
-//     await createPotion(client, name, potions);
-//   } catch (e) {
-//     console.log(name);
-//     throw e;
-//   }
-// }
-
-// fs.writeFileSync('src/data/potions.json', JSON.stringify(potions, null, '  '));

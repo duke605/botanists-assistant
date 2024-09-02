@@ -172,13 +172,13 @@ export class Item {
     public readonly stackable: boolean,
     public readonly quest: boolean,
     public readonly members: boolean,
-    public readonly isDefault: boolean,
     public readonly pageName: string,
     public readonly pageId: number,
     public readonly wikiImageUrl: string,
     public readonly doses?: number,
     public readonly relatedItemIds?: number[],
     public readonly version?: string,
+    public readonly flask?: true,
   ) {
     this.imageUrl = itemImages[id]!
   }
@@ -193,6 +193,10 @@ export class Item {
 
   get relatedItems() {
     return this.relatedItemIds?.map(id => itemsById.get(id)!) ?? [];
+  }
+
+  isFlask = () => {
+    return !!this.flask;
   }
 
   isPotion = () => {
@@ -389,13 +393,13 @@ export const items = Object.values(herbloreData.items).map(i => new Item(
   i.stackable,
   i.quest,
   i.members,
-  i.isDefault,
   i.pageName,
   i.pageId,
   i.image,
   (i as any).doses,
   (i as any).relatedIds,
   (i as any).version,
+  (i as any).flask,
 ));
 
 export const pages = Object.values(herbloreData.pages).map(p => new Page(

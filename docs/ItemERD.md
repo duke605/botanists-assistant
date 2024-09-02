@@ -21,12 +21,12 @@ erDiagram
     boolean stackable
     boolean quest
     boolean members
-    boolean isDefault
     string image
     string pageName
     number pageId FK
     number doses "NULL"
     number relatedItemIds "NULL"
+    true flask "NULL"
     string[] version "NULL"
   }
 

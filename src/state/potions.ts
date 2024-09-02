@@ -62,7 +62,7 @@ export const useBankedItemsInputs = create(persist(combine({
         const page = pagesById.get(+pageId);
         if (!page) return acc;
 
-        const singleDoseItem = page.items.find(i => !i.doses || i.doses === 1)!;
+        const singleDoseItem = page.items.find(i => (!i.doses || i.doses === 1) && !i.isFlask())!;
         acc[singleDoseItem.id] = doq;
 
         return acc;
