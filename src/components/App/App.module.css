@@ -56,3 +56,8 @@
 .tooltip[id="tooltip"] span[data-sepia] {
   color: #f8d56b;
 }
+
+.tooltip[id="tooltip"] span[data-muted] {
+  color: #828282;
+  font-size: 12px;
+}

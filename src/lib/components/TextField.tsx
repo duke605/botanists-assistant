@@ -1,8 +1,10 @@
 import { useCallback, useLayoutEffect, useState } from 'react';
+import classNames from 'classnames';
 import styles from './TextField.module.css';
 
 type TextFieldProps = Omit<JSX.IntrinsicElements['input'], 'type'> & {
-  type: 'number' | 'text',
+  type: 'number' | 'text';
+  fullWidth?: boolean;
 };
 
 export const TextField = (props: TextFieldProps) => {
@@ -58,6 +60,10 @@ export const TextField = (props: TextFieldProps) => {
     value={localValue}
     onChange={onChangeProxy}
     onBlur={onBlurProxy}
-    className={styles.textField}
+    className={classNames(
+      props.className,
+      styles.textField,
+      {[styles.fullWidth]: props.fullWidth},
+    )}
   />
 };

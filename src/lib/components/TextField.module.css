@@ -14,3 +14,7 @@
 .textField::-webkit-inner-spin-button, .textField::-webkit-outer-spin-button {
   display: none;
 }
+
+.fullWidth {
+  width: 100%;
+}

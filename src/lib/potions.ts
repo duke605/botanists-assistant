@@ -328,6 +328,8 @@ export class Recipe {
       if (input.item.recipes.length === 0) {
         inputQtyNeeded = options?.inventory?.takeItem(input.item, inputQtyNeeded) ?? inputQtyNeeded;
 
+        if (inputQtyNeeded === 0) continue;
+
         inputs[input.itemId] ??= 0;
         inputs[input.itemId] += Math.ceil(inputQtyNeeded);
         continue;

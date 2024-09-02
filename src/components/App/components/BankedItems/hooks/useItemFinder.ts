@@ -12,16 +12,12 @@ import { useBankedItemsInputs } from '@state/potions';
 export const useItemFinder = () => {
   const [ signal, setSignal ] = useState<Signal>();
   const [ progress, setProgress ] = useState<{slots: Number, scanned: number}>();
-  const [ addItem, clearItems ] = useBankedItemsInputs(p => [p.addItem, p.clearItems]);
+  const [ setItemQuantity ] = useBankedItemsInputs(p => [p.setItemQuantity]);
 
   /**
    * Looks for the bank interface and highlights the non-empty ban slots. When the user mouses over a slot
-   * the tooltip is read to determine what item is in that slot. If it is a potion, it is added to the the banked
-   * potions, otherwise it is ignore.
-   * 
-   * What is a potion and what is not is determined by the `POTION_REGEX` regular expression. If the name of the
-   * item in the slot matches the regular express AND the potion name is found in the list of registered potions
-   * then it is added to the banked potions
+   * the tooltip is read to determine what item is in that slot. If it is a potion or ingredient for a potion,
+   * it is added to the the banked items, otherwise it is ignored.
    */
   const findItems = useCallback(async (haystack: ImgRef) => {
     // If we are already searching for potions we exit immediately. Should never happen but just in case
@@ -30,7 +26,6 @@ export const useItemFinder = () => {
     
     try {
       setSignal(localSignal);
-      clearItems();
 
       const fullImage = haystack.read();
 
@@ -126,7 +121,7 @@ export const useItemFinder = () => {
             let qty = await getQuantity(fullImage.clone(hoveredSlot.rect));
             if (qty === 0) continue;
             
-            addItem(item.id, qty);
+            setItemQuantity(item.id, qty);
           }
         }
       } finally {

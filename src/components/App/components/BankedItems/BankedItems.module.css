@@ -1,3 +1,18 @@
 .buttonRow {
-  text-align: center;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.buttonRow > * {
+  flex-basis: 50%;
+  width: 100%;
+}
+
+.noItems {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 50px;
 }

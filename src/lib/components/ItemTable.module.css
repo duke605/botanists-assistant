@@ -1,0 +1,10 @@
+.sort {
+  cursor: pointer;
+}
+
+.searchRow {
+  grid-column: span 3;
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
