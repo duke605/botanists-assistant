@@ -2,12 +2,11 @@ import { create } from 'zustand';
 import { persist, createJSONStorage, combine } from 'zustand/middleware';
 import { Item, items, itemsById, itemsByName, Page, pagesById } from '@lib/potions';
 
-export const useBankedPotionInputs = create(persist(combine({
-  items: {} as {[pageId: number]: number},
+export const useBankedItemsInputs = create(persist(combine({
+  items: {} as {[itemId: number]: number},
 }, (set, get) => ({
   /**
-   * Adds qty of item to the state under its pageId. If the item is a potion, it is 
-   * converted to doses, multiplied by the provided quantity, and then added to the state
+   * Adds qty of item to the state.
    */
   addItem: (itemId: number, qty: number) => {
     const item = items.find(i => i.id === itemId);
@@ -15,33 +14,33 @@ export const useBankedPotionInputs = create(persist(combine({
 
     const bankedItems = {...get().items};
     
-    bankedItems[item.pageId] ??= 0;
-    bankedItems[item.pageId] += qty * (item.doses ?? 1);
+    bankedItems[item.id] ??= 0;
+    bankedItems[item.id] += qty;
     
     set({items: bankedItems});
   },
 
   /**
-   * Sets the absolute (does not account for doses)quantity of a banked item
+   * Sets the absolute quantity of a banked item
    */
-  setItemQuantity: (pageId: number, qty: number) => {
+  setItemQuantity: (itemId: number, qty: number) => {
     const bankedItems = {...get().items};
 
-    bankedItems[pageId] = qty;
+    bankedItems[itemId] = qty;
 
     set({items: bankedItems});
   },
 
   /**
-   * Returns the banked potion inputs resolved into their pages
+   * Returns the banked potion inputs resolved into their items
    */
   getResolvedItems: () => {
-    return Object.entries(get().items).map(([ pageId, doq ]) => {
-      const page = pagesById.get(+pageId);
-      if (!page) return;
+    return Object.entries(get().items).map(([ itemId, qty ]) => {
+      const item = itemsById.get(+itemId);
+      if (!item) return;
 
-      return {page, doq};
-    }).filter(p => p) as {page: Page, doq: number}[];
+      return {item, qty};
+    }).filter(p => p) as {item: Item, qty: number}[];
   },
 
   /**
@@ -52,7 +51,26 @@ export const useBankedPotionInputs = create(persist(combine({
   },
 })), {
   name: 'banked-items',
+  version: 1,
   storage: createJSONStorage(() => localStorage),
+  migrate: (state, version) => {
+    // Storing potions as their items instead of pages
+    if (version < 1) {
+      console.log('Migrating banked potions to use items instead of pages');
+      const typedState = state as {items: {[pageId: number]: number}};
+      typedState.items = Object.entries(typedState.items).reduce((acc, [ pageId, doq ]) => {
+        const page = pagesById.get(+pageId);
+        if (!page) return acc;
+
+        const singleDoseItem = page.items.find(i => !i.doses || i.doses === 1)!;
+        acc[singleDoseItem.id] = doq;
+
+        return acc;
+      }, {} as {[itemId: number]: number});
+    }
+
+    return state;
+  },
 }));
 
 export interface PlannedPotionsState {
@@ -152,9 +170,10 @@ export const usePlannedPotions = create(persist(combine({
     set({aggregateByPage: flag})
   }
 })), {
-  name: 'planned-potions',
-  storage: createJSONStorage(() => localStorage),
-}));
+    name: 'planned-potions',
+    version: 1,
+    storage: createJSONStorage(() => localStorage),
+  }));
 
 
 const initialPotionPlannerState = {

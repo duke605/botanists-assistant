@@ -39,14 +39,22 @@ interface CalculationOptions {
 }
 
 interface CalculateInputOptionsWithInventory extends CalculationOptions {
-  inventory?: Record<PageId, DoseOrQty>;
+  inventory?: Record<ItemId, DoseOrQty>;
 }
 
 class Inventory {
   private inventory: Record<PageId, DoseOrQty>;
 
-  constructor(inventory: Record<string, number>) {
-    this.inventory = {...inventory};
+  constructor(inventory: Record<ItemId, number>) {
+    this.inventory = Object.entries(inventory).reduce((acc, [ itemId, qty ]) => {
+      const item = itemsById.get(+itemId);
+      if (!item) return acc;
+
+      acc[item.pageId] ??= 0;
+      acc[item.pageId] += (item.doses ?? 1) * qty;
+
+      return acc;
+    }, {} as Record<PageId, number>);
   }
 
   /**
@@ -129,7 +137,7 @@ export class Page {
       if (!startingRecipe) throw new Error('recipe_not_found');
     }
 
-    const inputs: Record<PageId, DoseOrQty> = {};
+    const inputs: Record<ItemId, Quantity> = {};
     const inventory = new Inventory(options?.inventory ?? {});
 
     // Setting the target potion's quantity/dose to 0 since that's what we want to make

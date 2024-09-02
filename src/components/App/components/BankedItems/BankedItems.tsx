@@ -1,11 +1,11 @@
-import { useBankedPotionInputs } from '@state/potions';
+import { useBankedItemsInputs } from '@state/potions';
 import { Button, Heading, Table, TableCell, TableHead } from '@lib/components';
 import { Fragment, useCallback, useMemo } from 'react';
 import { captureHoldFullRs } from 'alt1';
 import { useItemFinder } from './hooks';
-import styles from './BankedItems.module.css';
 import { create } from 'zustand';
 import { combine, createJSONStorage, persist } from 'zustand/middleware';
+import styles from './BankedItems.module.css';
 
 export const useBankedItemSettings = create(persist(combine({
   qtySortAsc: true,
@@ -22,17 +22,17 @@ export const useBankedItemSettings = create(persist(combine({
 
 export const BankedItems = () => {
   const [ nameSortAsc, toggleSetting ] = useBankedItemSettings(s => [s.nameSortAsc, s.toggleSetting]);
-  const [ resolveItems, rawItemPages ] = useBankedPotionInputs(s => [s.getResolvedItems, s.items]);
+  const [ resolveItems, rawItems ] = useBankedItemsInputs(s => [s.getResolvedItems, s.items]);
   const { findItems, cancelSearching, isSearching } = useItemFinder();
-  const itemPages = useMemo(() => {
+  const items = useMemo(() => {
     const items = resolveItems();
     items.sort((a, b) => {
       const [ first, second ] = nameSortAsc ? [a,b] : [b,a];
-      return first.page.name.localeCompare(second.page.name);
+      return first.item.name.localeCompare(second.item.name);
     });
 
     return items;
-  }, [rawItemPages, nameSortAsc]);
+  }, [rawItems, nameSortAsc]);
 
   const importItems = useCallback(async () => {
     const haystack = captureHoldFullRs();
@@ -54,11 +54,11 @@ export const BankedItems = () => {
         </TableCell>
         <TableCell>Dose/Quantity</TableCell>
       </TableHead>
-      {itemPages.map(i =>
-        <Fragment key={i.page.id}>
-          <TableCell style={{lineHeight: 0, fontSize: 0, justifyContent: 'center'}}><img src={i.page.image} /></TableCell>
-          <TableCell>{i.page.name}</TableCell>
-          <TableCell style={{justifyContent: 'end'}}>{i.doq.toLocaleString()}</TableCell>
+      {items.map(i =>
+        <Fragment key={i.item.id}>
+          <TableCell style={{lineHeight: 0, fontSize: 0, justifyContent: 'center'}}><img src={i.item.imageUrl} /></TableCell>
+          <TableCell>{i.item.name}</TableCell>
+          <TableCell style={{justifyContent: 'end'}}>{i.qty.toLocaleString()}</TableCell>
         </Fragment>
       )}
     </Table>
