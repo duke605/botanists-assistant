@@ -1,87 +1,40 @@
-# React + TypeScript + Vite
+# Botanist's Assistant Plugin
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Welcome to the Botanist's Assistant Plugin for Alt1! This tool is designed to assist RuneScape 3 players in managing and tracking their potions. Whether you're potion making for exp, want a shopping list of potion ingredients to make a specified amount of a certain potion, or just don't want to do the math and tracking to make Overloads and all its variants, Botanist's Assistant is here to help.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Track Crafted Potions**: Track potions as they are crafted.
+- **Setup Target Potions**: Calculate a list of ingredients needed to make a specified amount of a target potion.
+- **Easy potion recipe lookup:** Quickly look up potion recipes.
+- **Import potions:** Easily import potions into the app from your bank without having to type the quantity for all potion ingredients.
 
-## Expanding the ESLint configuration
+## Installation
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+1. **Download and Install Alt1**:
+   - Ensure you have Alt1 installed. You can download it from [Alt1's official site](https://alt1.app).
 
-- Configure the top-level `parserOptions` property like this:
+2. **Add the Botanist's Assistant Plugin**:
+   - Copy and paste this URL into Alt1's browser app `alt1://addapp/https://duke605.github.io/botanists-assistant/assets/appconfig.json`
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json', './tsconfig.app.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+## Limitations
+ - Inventory import does not work for legacy UI
+ - Potion tracking for combination and bomb potions does not work on legacy UI
+ - Potion tracking requires chat timestamps to be enabled
+ - Potion tracking requires chat to be unfiltered
+ - Quest potions are not supported
+ - Unfinished overloads (Granny Rowan) are not supported
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+## Contributing
 
-```mermaid
-erDiagram
-  Page ||--|{ Item : ""
-  Page ||--o{ Recipe : ""
-  Recipe ||--|| Output : ""
-  Recipe ||--|{ Input : ""
-  Output }o--|| Item : ""
-  Input }o--|| Item : ""
+I welcome contributions from the community! If you have suggestions, bug reports, or wish to contribute code, please submit an issue or pull request on GitHub.
 
-  Item {
-    number id PK
-    string name UK
-    string update
-    string release
-    number weight
-    string examime
-    string tradable
-    boolean noteable
-    boolean equipable
-    boolean stackable
-    boolean quest
-    boolean members
-    boolean isDefault
-    string image
-    string pageName
-    number pageId FK
-    number doses "NULL"
-    number relatedItemIds "NULL"
-    string[] version "NULL"
-  }
+<!-- ## License
 
-  Page {
-    number id PK
-    string name UK
-    string content
-    string[] categories
-  }
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more information. -->
 
-  Recipe {
-    string name
-    number exp
-    number[] ticks
-    number[] herbLevel
-  }
+## Contact
 
-  Output {
-    number itemId FK
-    number quantity
-  }
+For support or inquiries, please reach out via [GitHub Issues](https://github.com/yourusername/botanists-assistant/issues)
 
-  Input {
-    number itemId FK
-    number quantity
-    boolean isSecondary
-  }
-```
+Happy potion crafting!
