@@ -61,7 +61,7 @@ export const PlannedPotionsSetup = () => {
     well,
     useInventory,
   } = usePotionPlanner();
-  const inventory = useBankedItemsInputs(s => s.items);
+  const inventory = useBankedItemsInputs(s => s.entries);
   const [ qtyToMake, setQtyToMake ] = useState(0);
   const potionPage = pagesById.get(targetPotionPageId);
   const potionChain = useMemo(() => {
@@ -104,7 +104,10 @@ export const PlannedPotionsSetup = () => {
       underworldGrimoire,
       well,
       recipePaths,
-      inventory: useInventory ? inventory : {},
+      inventory: !useInventory ? {} : inventory.reduce((acc, entry) => {
+        acc[entry.item.id] = {itemId: entry.item, qty: entry.qty};
+        return acc;
+      }, {}),
     });
 
     const settings: PlannedPotionsState['settings'] = {recipePaths};

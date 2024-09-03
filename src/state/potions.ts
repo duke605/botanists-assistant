@@ -1,10 +1,14 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage, combine } from 'zustand/middleware';
+import { persist, createJSONStorage, combine, StorageValue } from 'zustand/middleware';
 import { Item, items, itemsById, itemsByName, Page, pagesById } from '@lib/potions';
 
+interface useBankedItemsInputsState {
+  entries: {item: Item; qty: number, timeAdded: number}[];
+}
+
 export const useBankedItemsInputs = create(persist(combine({
-  items: {} as {[itemId: number]: number},
-}, (set, get) => ({
+  entries: [],
+} as useBankedItemsInputsState, (set, get) => ({
   /**
    * Adds qty of item to the state.
    */
@@ -12,64 +16,99 @@ export const useBankedItemsInputs = create(persist(combine({
     const item = items.find(i => i.id === itemId);
     if (!item) return;
 
-    const bankedItems = {...get().items};
-    
-    bankedItems[item.id] ??= 0;
-    bankedItems[item.id] += qty;
-    
-    set({items: bankedItems});
+    const entries = [...get().entries];
+    const idx = entries.findIndex(e => e.item.id === item.id);
+    idx === -1
+      ? entries.push({item, qty, timeAdded: Date.now()})
+      : entries[idx] = {item, qty: entries[idx].qty + qty, timeAdded: Date.now()};
+
+    set({entries});
   },
 
   /**
    * Sets the absolute quantity of a banked item
    */
   setItemQuantity: (itemId: number, qty: number) => {
-    const bankedItems = {...get().items};
+    const item = itemsById.get(itemId);
+    if (!item) return;
 
-    bankedItems[itemId] = qty;
+    const entries = [...get().entries];
+    const idx = entries.findIndex(e => e.item.id === item.id);
+    const entry = {item, qty, timeAdded: Date.now()};
+    idx === -1
+      ? entries.push(entry)
+      : entries[idx] = entry;
 
-    set({items: bankedItems});
-  },
-
-  /**
-   * Returns the banked potion inputs resolved into their items
-   */
-  getResolvedItems: () => {
-    return Object.entries(get().items).map(([ itemId, qty ]) => {
-      const item = itemsById.get(+itemId);
-      if (!item) return;
-
-      return {item, qty};
-    }).filter(p => p) as {item: Item, qty: number}[];
+    set({entries});
   },
 
   /**
    * Clears all banked potion inputs from state
    */
   clearItems: () => {
-    set({items: {}});
+    set({entries: []});
   },
 })), {
   name: 'banked-items',
-  version: 1,
-  storage: createJSONStorage(() => localStorage),
-  migrate: (state, version) => {
-    // Storing potions as their items instead of pages
-    if (version < 1) {
-      console.log('Migrating banked potions to use items instead of pages');
-      const typedState = state as {items: {[pageId: number]: number}};
-      typedState.items = Object.entries(typedState.items).reduce((acc, [ pageId, doq ]) => {
-        const page = pagesById.get(+pageId);
-        if (!page) return acc;
+  version: 2,
+  migrate: s => s, // Need to have this to migrate properly but this doesn't work with custom deserializers
+  storage: {
+    getItem: name => {
+      const str = localStorage.getItem(name) ;
+      if (!str) return null;
 
-        const singleDoseItem = page.items.find(i => (!i.doses || i.doses === 1) && !i.isFlask())!;
-        acc[singleDoseItem.id] = doq;
+      let storageValue = JSON.parse(str) as StorageValue<unknown>;
+      const version = storageValue.version ?? 0;
 
+      if (version < 1) {
+        console.log('Migrating banked potions to use items instead of pages');
+        const typedState = storageValue.state as {items: {[pageId: number]: number}};
+        typedState.items = Object.entries(typedState.items).reduce((acc, [ pageId, doq ]) => {
+          const page = pagesById.get(+pageId);
+          if (!page) return acc;
+  
+          const singleDoseItem = page.items.find(i => (!i.doses || i.doses === 1) && !i.isFlask())!;
+          acc[singleDoseItem.id] = doq;
+  
+          return acc;
+        }, {} as {[itemId: number]: number});
+      }
+
+       // Adding timeAdded to items and moving items to _items
+      if (version < 2) {
+        console.log('Migrating banked potions use timestamps');
+        const typedState = storageValue.state as {items?: {[itemId: number]: number}, entries: {itemId: number, timeAdded: number, qty: number}[]};
+        typedState.entries = Object.entries(typedState.items!).map(([ itemId, qty ]) => ({
+          itemId: +itemId, qty, timeAdded: Date.now(),
+        }));
+        delete typedState['items'];
+      }
+
+      const jsonState = storageValue.state as any;
+      const typedStorageValue = storageValue as StorageValue<useBankedItemsInputsState>;
+      typedStorageValue.state.entries = jsonState.entries.reduce((acc, entry) => {
+        const item = itemsById.get(entry.itemId);
+        if (!item) return acc;
+
+        acc.push({item, qty: entry.qty, timeAdded: entry.timeAdded});
         return acc;
-      }, {} as {[itemId: number]: number});
-    }
+      }, [] as useBankedItemsInputsState['entries']);
 
-    return state;
+      return typedStorageValue;
+    },
+    removeItem: name => localStorage.removeItem(name),
+    setItem: (name, s) => {
+      const state = s as StorageValue<useBankedItemsInputsState>;
+      const jsonState = {...state} as unknown as StorageValue<any>;
+
+      jsonState.state.entries = state.state.entries.map(e => ({
+        itemId: e.item.id,
+        qty: e.qty,
+        timeAdded: e.timeAdded,
+      }));
+
+      localStorage.setItem(name, JSON.stringify(jsonState));
+    },
   },
 }));
 
@@ -82,12 +121,12 @@ export interface PlannedPotionsState {
 }
 
 export const usePlannedPotions = create(persist(combine({
-  potions: {} as {[pageId: number]: number},
-  rawPotions: {} as {[itemId: number]: number},
-  madePotions: {} as {[pageId: number]: number},
-  settings: {recipePaths: {}} as PlannedPotionsState['settings'],
+  potions: {},
+  rawPotions: {},
+  madePotions: {},
+  settings: {recipePaths: {}},
   aggregateByPage: true,
-}, (set, get) => ({
+} as PlannedPotionsState, (set, get) => ({
   /**
    * Decrements a potion's dose or quantity from the store. The potion item name
    * is the full name of the potion (Eg. Super antifire (3) or Avantoe potion (unf)).

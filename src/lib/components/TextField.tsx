@@ -8,6 +8,7 @@ type TextFieldProps = Omit<JSX.IntrinsicElements['input'], 'type'> & {
 };
 
 export const TextField = (props: TextFieldProps) => {
+  const { fullWidth, ...rest } = props;
   const [ localValue, setLocalValue ] = useState(props.value ?? '');
 
   useLayoutEffect(() => {
@@ -55,7 +56,7 @@ export const TextField = (props: TextFieldProps) => {
 
 
   return <input
-    {...props}
+    {...rest}
     type="text"
     value={localValue}
     onChange={onChangeProxy}
@@ -63,7 +64,7 @@ export const TextField = (props: TextFieldProps) => {
     className={classNames(
       props.className,
       styles.textField,
-      {[styles.fullWidth]: props.fullWidth},
+      {[styles.fullWidth]: fullWidth},
     )}
   />
 };

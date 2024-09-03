@@ -12,10 +12,10 @@ export const TabRow = () => {
 
   return (
     <div className={styles.tabRow}>
-      <Tab title="Planned Potions" icon={herblore} onClick={() => navigate('/planned_potions/')} active={location.pathname.startsWith('/planned_potions')} />
-      <Tab title="Tracked Potions" icon={elderSalve} onClick={() => navigate('/tracked_potions')} active={location.pathname === '/tracked_potions'} />
-      <Tab title="Settings" icon={settings} onClick={() => navigate('/settings')} active={location.pathname === '/settings'} />
-      <Tab title="Inventory" icon={backpack} onClick={() => navigate('/inventory')} active={location.pathname === '/inventory'} />
+      <Tab data-tooltip-id="tooltip" data-tooltip-content="Planned Potions" icon={herblore} onClick={() => navigate('/planned_potions/')} active={location.pathname.startsWith('/planned_potions')} />
+      <Tab data-tooltip-id="tooltip" data-tooltip-content="Tracked Potions" icon={elderSalve} onClick={() => navigate('/tracked_potions')} active={location.pathname === '/tracked_potions'} />
+      <Tab data-tooltip-id="tooltip" data-tooltip-content="Settings" icon={settings} onClick={() => navigate('/settings')} active={location.pathname === '/settings'} />
+      <Tab data-tooltip-id="tooltip" data-tooltip-content="Inventory" icon={backpack} onClick={() => navigate('/inventory')} active={location.pathname === '/inventory'} />
     </div>
   )
 }

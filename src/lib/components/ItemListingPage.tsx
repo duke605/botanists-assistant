@@ -22,6 +22,7 @@ export const ItemListingPage = <T,>(props: ItemListingPageProps<T>) => {
         getImage={props.getImage}
         getDoq={props.getDoq}
         getName={props.getName}
+        getRecipes={props.getRecipes}
       />
     )}
   </>

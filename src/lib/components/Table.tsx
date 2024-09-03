@@ -17,6 +17,7 @@ interface TableProps {
   rowHeight?: string;
   firstRowHeight?: string;
   columnWidths: string;
+  style?: CSSProperties;
 }
 
 export const TableCell = (props: TableCellProps) => {
@@ -36,7 +37,7 @@ export const TableHead = (props: TableHeadProps) => {
 
 export const Table = (props: TableProps) => {
   return (
-    <div className={styles.table} style={{'--height': props.rowHeight, '--first-height': props.firstRowHeight, '--col-widths': props.columnWidths} as any}>
+    <div className={styles.table} style={{'--height': props.rowHeight, '--first-height': props.firstRowHeight, '--col-widths': props.columnWidths, ...props.style} as any}>
       {props.children}
     </div>
   )

@@ -56,6 +56,6 @@ export const App = () => {
 
   return <>
     <RouterProvider router={router} />
-    <Tooltip id="tooltip" className={styles.tooltip} float place="bottom" />
+    <Tooltip id="tooltip" className={styles.tooltip} float place="bottom" offset={20} />
   </>;
 };

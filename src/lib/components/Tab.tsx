@@ -3,7 +3,6 @@ import styles from './Tab.module.css';
 
 interface TabProps {
   icon: string;
-  title: string;
   active?: boolean;
 }
 
