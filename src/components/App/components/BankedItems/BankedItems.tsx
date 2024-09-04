@@ -1,17 +1,14 @@
-import { useBankedItemsInputs } from '@state/potions';
+import { useBankedItemInputs } from '@state';
 import { Button, Heading, ItemListingPage } from '@lib/components';
 import { useCallback, useMemo } from 'react';
 import { captureHoldFullRs } from 'alt1';
 import { useItemFinder } from './hooks';
+import { useShallow } from 'zustand/react/shallow';
 
 export const BankedItems = () => {
-  const [
-    clearItems,
-    rawItems,
-  ] = useBankedItemsInputs(s => [
-    s.clearItems,
-    s.entries,
-  ]);
+  const [ rawItems, clearItems ] = useBankedItemInputs(
+    useShallow(s => [s.entries, s.clearItems]),
+  );
   const { findItems, cancelSearching, isSearching } = useItemFinder();
   const items = useMemo(() => {
     return rawItems.map(i => ({

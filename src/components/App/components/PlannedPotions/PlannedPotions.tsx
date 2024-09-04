@@ -1,30 +1,17 @@
 import { usePlannedPotions } from '@state/potions';
-import { Button, Checkbox, Heading, Table, TableCell, TableHead } from '@lib/components';
+import { Button, Heading, Table, TableCell, TableHead } from '@lib/components';
 import { useNavigate } from 'react-router';
 import { Fragment } from 'react/jsx-runtime';
 import { makeRecipeToolTip } from '@lib/potions';
-import { useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import styles from './PlannedPotions.module.css';
 
 export const PlannedPotions = () => {
   const navigate = useNavigate();
-  const [
-    getResolvedItems,
-    clearPotions,
-    recipePaths,
-    potionPagesDoq,
-    setAggregateByPage,
-    aggregateByPage,
-  ] = usePlannedPotions(s => [
-    s.getResolvedItems,
-    s.clearPotions,
-    s.settings?.recipePaths,
-    s.potions,
-    s.setAggregateByPage,
-    s.aggregateByPage,
-  ]);
-  const potions = useMemo(() => getResolvedItems(), [potionPagesDoq, aggregateByPage]);
-  const hasPotionsToMake = Object.keys(potionPagesDoq).length > 0;
+  const [ potions, recipePaths, clearPotions ] = usePlannedPotions(
+    useShallow(s => [s.potions, s.settings.recipePaths, s.clearPotions]),
+  );
+  const hasPotionsToMake = potions.size > 0;
 
   return (
     <>
@@ -34,21 +21,21 @@ export const PlannedPotions = () => {
           <Button onClick={() => navigate('/planned_potions/setup')}>Set potions</Button>
           <Button onClick={clearPotions}>Clear potions</Button>
         </div>
-        <div className={styles.aggregateSetting}>
+        {/* <div className={styles.aggregateSetting}>
           <span>Aggregate by potion</span>
           <Checkbox checked={aggregateByPage} onChange={(e) => setAggregateByPage(e.currentTarget.checked)} />
-        </div>
+        </div> */}
         <Table columnWidths="min-content 1fr min-content" rowHeight="1fr" firstRowHeight="38px">
           <TableHead>
             <TableCell></TableCell>
             <TableCell>Name</TableCell>
-            <TableCell>{aggregateByPage ? 'Dose/Quantity' : 'Quantity'}</TableCell>
+            <TableCell>{true ? 'Dose/Quantity' : 'Quantity'}</TableCell>
           </TableHead>
-          {potions.map(pageOrItem =>
-            <Fragment key={pageOrItem.page?.id ?? pageOrItem.item.id}>
-              <TableCell style={{lineHeight: 0, fontSize: 0, justifyContent: 'center'}}><img src={pageOrItem.page?.image ?? pageOrItem.item.imageUrl} /></TableCell>
-              <TableCell><span className={styles.linkLink} data-tooltip-id="tooltip" data-tooltip-html={makeRecipeToolTip(recipePaths!, pageOrItem.page ?? pageOrItem.item.page)}>{pageOrItem.page?.name ?? pageOrItem.item.name}</span></TableCell>
-              <TableCell style={{justifyContent: 'end'}}>{Math.ceil(pageOrItem.doq ?? pageOrItem.qty).toLocaleString()}</TableCell>
+          {Array.from(potions.values()).map(pageOrItem =>
+            <Fragment key={pageOrItem.page.id}>
+              <TableCell style={{lineHeight: 0, fontSize: 0, justifyContent: 'center'}}><img src={pageOrItem.page.image} /></TableCell>
+              <TableCell><span className={styles.linkLink} data-tooltip-id="tooltip" data-tooltip-html={makeRecipeToolTip(recipePaths!, pageOrItem.page)}>{pageOrItem.page.name}</span></TableCell>
+              <TableCell style={{justifyContent: 'end'}}>{Math.ceil(pageOrItem.doq).toLocaleString()}</TableCell>
             </Fragment>
           )}
         </Table>

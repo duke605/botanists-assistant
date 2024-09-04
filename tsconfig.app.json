@@ -29,7 +29,8 @@
       "@lib/*": ["src/lib/*"],
       "@assets/*": ["src/assets/*"],
       "@data/*": ["src/data/*"],
-      "@state/*": ["src/state/*"]
+      "@state/*": ["src/state/*"],
+      "@state": ["src/state/index.ts"]
     }
   },
   "include": ["src", "scripts"]

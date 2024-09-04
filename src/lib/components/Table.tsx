@@ -1,6 +1,6 @@
 import React, { Children, cloneElement, CSSProperties, ReactNode } from 'react';
-import styles from './Table.module.css';
 import classNames from 'classnames';
+import styles from './Table.module.css';
 
 interface TableHeadProps {
   children?: ReactNode;

@@ -1,129 +1,19 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage, combine, StorageValue } from 'zustand/middleware';
-import { Item, items, itemsById, itemsByName, Page, pagesById } from '@lib/potions';
-
-interface useBankedItemsInputsState {
-  entries: {item: Item; qty: number, timeAdded: number}[];
-}
-
-export const useBankedItemsInputs = create(persist(combine({
-  entries: [],
-} as useBankedItemsInputsState, (set, get) => ({
-  /**
-   * Adds qty of item to the state.
-   */
-  addItem: (itemId: number, qty: number) => {
-    const item = items.find(i => i.id === itemId);
-    if (!item) return;
-
-    const entries = [...get().entries];
-    const idx = entries.findIndex(e => e.item.id === item.id);
-    idx === -1
-      ? entries.push({item, qty, timeAdded: Date.now()})
-      : entries[idx] = {item, qty: entries[idx].qty + qty, timeAdded: Date.now()};
-
-    set({entries});
-  },
-
-  /**
-   * Sets the absolute quantity of a banked item
-   */
-  setItemQuantity: (itemId: number, qty: number) => {
-    const item = itemsById.get(itemId);
-    if (!item) return;
-
-    const entries = [...get().entries];
-    const idx = entries.findIndex(e => e.item.id === item.id);
-    const entry = {item, qty, timeAdded: Date.now()};
-    idx === -1
-      ? entries.push(entry)
-      : entries[idx] = entry;
-
-    set({entries});
-  },
-
-  /**
-   * Clears all banked potion inputs from state
-   */
-  clearItems: () => {
-    set({entries: []});
-  },
-})), {
-  name: 'banked-items',
-  version: 2,
-  migrate: s => s, // Need to have this to migrate properly but this doesn't work with custom deserializers
-  storage: {
-    getItem: name => {
-      const str = localStorage.getItem(name) ;
-      if (!str) return null;
-
-      let storageValue = JSON.parse(str) as StorageValue<unknown>;
-      const version = storageValue.version ?? 0;
-
-      if (version < 1) {
-        console.log('Migrating banked potions to use items instead of pages');
-        const typedState = storageValue.state as {items: {[pageId: number]: number}};
-        typedState.items = Object.entries(typedState.items).reduce((acc, [ pageId, doq ]) => {
-          const page = pagesById.get(+pageId);
-          if (!page) return acc;
-  
-          const singleDoseItem = page.items.find(i => (!i.doses || i.doses === 1) && !i.isFlask())!;
-          acc[singleDoseItem.id] = doq;
-  
-          return acc;
-        }, {} as {[itemId: number]: number});
-      }
-
-       // Adding timeAdded to items and moving items to _items
-      if (version < 2) {
-        console.log('Migrating banked potions use timestamps');
-        const typedState = storageValue.state as {items?: {[itemId: number]: number}, entries: {itemId: number, timeAdded: number, qty: number}[]};
-        typedState.entries = Object.entries(typedState.items!).map(([ itemId, qty ]) => ({
-          itemId: +itemId, qty, timeAdded: Date.now(),
-        }));
-        delete typedState['items'];
-      }
-
-      const jsonState = storageValue.state as any;
-      const typedStorageValue = storageValue as StorageValue<useBankedItemsInputsState>;
-      typedStorageValue.state.entries = jsonState.entries.reduce((acc, entry) => {
-        const item = itemsById.get(entry.itemId);
-        if (!item) return acc;
-
-        acc.push({item, qty: entry.qty, timeAdded: entry.timeAdded});
-        return acc;
-      }, [] as useBankedItemsInputsState['entries']);
-
-      return typedStorageValue;
-    },
-    removeItem: name => localStorage.removeItem(name),
-    setItem: (name, s) => {
-      const state = s as StorageValue<useBankedItemsInputsState>;
-      const jsonState = {...state} as unknown as StorageValue<any>;
-
-      jsonState.state.entries = state.state.entries.map(e => ({
-        itemId: e.item.id,
-        qty: e.qty,
-        timeAdded: e.timeAdded,
-      }));
-
-      localStorage.setItem(name, JSON.stringify(jsonState));
-    },
-  },
-}));
+import { Item, itemsById, itemsByName, Page, pagesById } from '@lib/potions';
 
 export interface PlannedPotionsState {
-  potions: {[pageId: number]: number};
-  rawPotions: {[itemId: number]: number};
-  madePotions: {[pageId: number]: number};
+  potions: Map<number, {page: Page, doq: number}>;
+  rawPotions: Map<number, {item: Item, qty: number}>;
+  madePotions: Map<number, {page: Page, doq: number}>;
   settings: {recipePaths: {[pageId: number]: string}},
   aggregateByPage: boolean,
 }
 
 export const usePlannedPotions = create(persist(combine({
-  potions: {},
-  rawPotions: {},
-  madePotions: {},
+  potions: new Map(),
+  rawPotions: new Map(),
+  madePotions: new Map(),
   settings: {recipePaths: {}},
   aggregateByPage: true,
 } as PlannedPotionsState, (set, get) => ({
@@ -135,37 +25,47 @@ export const usePlannedPotions = create(persist(combine({
     const item = itemsByName.get(potionItemName.toLowerCase());
     if (!item || !item.isPotion()) return;
     
-    const madePotions = {...get().madePotions};
-    const potions = {...get().potions};
-    const potionDoq = potions[item.pageId] ?? 0;
     const doq = quantity * (item.doses ?? 1);
+    const madePotions = new Map(get().madePotions);
+    let potions = get().potions;
     
-    madePotions[item.pageId] ??= 0;
-    madePotions[item.pageId] += (item.doses ?? 1) * quantity;
-    potions[item.pageId] = Math.max(0, potionDoq - doq);
-    potions[item.pageId] === 0 && delete potions[item.pageId];
+    if (madePotions.has(item.pageId)) {
+      const madePotion = {...madePotions.get(item.pageId)!};
+      madePotion.doq += doq;
+      madePotions.set(item.pageId, madePotion);
+    } else {
+      const madePotion = {page: item.page, doq};
+      madePotions.set(item.pageId, madePotion);
+    }
+    
+    if (potions.has(item.pageId)) {
+      potions = new Map(potions);
+      const potion = {...potions.get(item.pageId)!};
+      potion.doq -= doq;
+      potion.doq <= 0
+        ? potions.delete(item.pageId)
+        : potions.set(item.pageId, potion);
+    }
     
     set({potions, madePotions});
   },
   clearPotions: () => {
-    set({potions: {}, madePotions: {}});
+    set({potions: new Map(), madePotions: new Map(), rawPotions: new Map()});
   },
-  setPotions: (potions: {[itemId: number]: number}, settings: PlannedPotionsState['settings']) => {
+  setPotions: (potions: PlannedPotionsState['rawPotions'], settings: PlannedPotionsState['settings']) => {
     // Filtering out non-potion inputs and converting potion inputs to doses (if they use doses)
-    const potionDoqs = Object.entries(potions).reduce((map, [ id, qty ]) => {
-      const potion = itemsById.get(+id);
-      if (!potion || !potion.isPotion()) return map;
+    const potionDoqs = Array.from(potions.values()).reduce((map, { qty, item }) => {
+      if (!item.isPotion()) return map;
 
-      map[potion.pageId] = qty * (potion.doses ?? 1);
-
-      return map;
-    }, {} as Record<number, number>);
+      const doq = qty * (item.doses ?? 1);
+      return map.set(item.pageId, {page: item.page, doq});
+    }, new Map() as PlannedPotionsState['potions']);
     
     set({
       potions: potionDoqs,
       rawPotions: potions,
       settings,
-      madePotions: {},
+      madePotions: new Map(),
     });
   },
 
@@ -176,31 +76,31 @@ export const usePlannedPotions = create(persist(combine({
    * Eg. If aggregate by page is true and there are 2 Super antifire (4) and 1 Super Antifire (3)
    * planned to be made, then the results will show that there are 11 Super antifire doses to be made
    */
-  getResolvedItems: (aggregateByPage?: boolean) => {
-    aggregateByPage ??= get().aggregateByPage;
-    if (aggregateByPage) return Object.entries(get().potions).map(([ pageId, doq ]) => {
-      const page = pagesById.get(+pageId);
-      if (!page) return;
+  // getResolvedItems: (aggregateByPage?: boolean) => {
+  //   aggregateByPage ??= get().aggregateByPage;
+  //   if (aggregateByPage) return Object.entries(get().potions).map(([ pageId, doq ]) => {
+  //     const page = pagesById.get(+pageId);
+  //     if (!page) return;
 
-      return {page, doq};
-    }).filter(p => p) as {page: Page, doq: number}[];
+  //     return {page, doq};
+  //   }).filter(p => p) as {page: Page, doq: number}[];
 
-    const doqInventory = {...get().madePotions};
-    return Object.entries(get().rawPotions).map(([ itemId, qty ]) => {
-      const item = itemsById.get(+itemId);
-      if (!item) return;
+  //   const doqInventory = {...get().madePotions};
+  //   return Object.entries(get().rawPotions).map(([ itemId, qty ]) => {
+  //     const item = itemsById.get(+itemId);
+  //     if (!item) return;
 
-      doqInventory[item.pageId] ??= 0;
-      const madeDoq = doqInventory[item.pageId];
-      const doqToMake = (item.doses ?? 1) * qty;
-      const remainingDoqToMake = Math.max(0, doqToMake - madeDoq);
+  //     doqInventory[item.pageId] ??= 0;
+  //     const madeDoq = doqInventory[item.pageId];
+  //     const doqToMake = (item.doses ?? 1) * qty;
+  //     const remainingDoqToMake = Math.max(0, doqToMake - madeDoq);
 
-      doqInventory[item.id] = Math.max(madeDoq - doqToMake, 0);
-      qty = remainingDoqToMake / (item.doses ?? 1);
+  //     doqInventory[item.id] = Math.max(madeDoq - doqToMake, 0);
+  //     qty = remainingDoqToMake / (item.doses ?? 1);
 
-      return {item, qty};
-    }).filter(p => p) as {item: Item, qty: number}[];
-  },
+  //     return {item, qty};
+  //   }).filter(p => p) as {item: Item, qty: number}[];
+  // },
 
   /**
    * Sets the aggregate by page setting
@@ -209,11 +109,62 @@ export const usePlannedPotions = create(persist(combine({
     set({aggregateByPage: flag})
   }
 })), {
-    name: 'planned-potions',
-    version: 1,
-    storage: createJSONStorage(() => localStorage),
-  }));
+  name: 'planned-potions',
+  version: 1,
+  migrate: s => s as any,
+  storage: {
+    removeItem: name => localStorage.removeItem(name),
+    setItem: (name, value: StorageValue<PlannedPotionsState>) => {
+      const state = {
+        ...value.state,
+        potions: Array.from(value.state.potions.values()).reduce((acc, potion) => {
+          acc[potion.page.id] = potion.doq;
+          return acc;
+        }, {}),
+        rawPotions: Array.from(value.state.rawPotions.values()).reduce((acc, potion) => {
+          acc[potion.item.id] = potion.qty;
+          return acc;
+        }, {}),
+        madePotions: Array.from(value.state.madePotions.values()).reduce((acc, potion) => {
+          acc[potion.page.id] = potion.doq;
+          return acc;
+        }, {}),
+      }
 
+      localStorage.setItem(name, JSON.stringify({...value, state}));
+    },
+    getItem: name => {
+      const item = localStorage.getItem(name);
+      if (!item) return null;
+
+      const storageValue = JSON.parse(item) as StorageValue<any>; 
+      return <StorageValue<PlannedPotionsState>> {
+        ...storageValue,
+        state: {
+          ...storageValue.state,
+          potions: Object.entries(storageValue.state.potions as Record<number, number>).reduce((acc, entry) => {
+            const page = pagesById.get(+entry[0]);
+            if (!page) return acc;
+
+            return acc.set(page.id, {page, doq: entry[1]});
+          }, new Map() as PlannedPotionsState['potions']),
+          madePotions: Object.entries(storageValue.state.madePotions as Record<number, number>).reduce((acc, entry) => {
+            const page = pagesById.get(+entry[0]);
+            if (!page) return acc;
+
+            return acc.set(page.id, {page, doq: entry[1]});
+          }, new Map() as PlannedPotionsState['madePotions']),
+          rawPotions: Object.entries(storageValue.state.rawPotions as Record<number, number>).reduce((acc, entry) => {
+            const item = itemsById.get(+entry[0]);
+            if (!item) return acc;
+
+            return acc.set(item.id, {item, qty: entry[1]});
+          }, new Map as PlannedPotionsState['rawPotions']),
+        },
+      };
+    }
+  },
+}));
 
 const initialPotionPlannerState = {
   targetPotion: -1,

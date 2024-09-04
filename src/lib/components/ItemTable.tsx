@@ -5,8 +5,8 @@ import { Fragment } from 'react/jsx-runtime';
 import { ChangeEvent, useCallback, useDeferredValue, useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
 import { Tooltip } from 'react-tooltip';
-import styles from './ItemTable.module.css';
 import classNames from 'classnames';
+import styles from './ItemTable.module.css';
 
 interface RecipeResult {
   inputs: {qty: number; image: string; name: string}[];
@@ -69,7 +69,8 @@ export const ItemTable = <T,>(props: ItemProps<T>) => {
 
     if (fuzzyMatch) {
       const fuse = new Fuse(props.items, {
-        getFn: props.getName,
+        keys: ['N/A'],
+        getFn: i => props.getName(i),
         shouldSort: true,
       });
       
@@ -97,7 +98,7 @@ export const ItemTable = <T,>(props: ItemProps<T>) => {
   }, []);
 
   return (
-    <Table columnWidths="51px 1fr min-content" rowHeight="1fr" firstRowHeight="38px">
+    <Table columnWidths="51px 1fr min-content" rowHeight="1fr" firstRowHeight="min-content 42px">
       <TableHead>
         <TableCell className={styles.searchRow}>
           Search:
@@ -116,17 +117,17 @@ export const ItemTable = <T,>(props: ItemProps<T>) => {
           <Sort direction={sortColumn !== 'qty' ? undefined : sortDirection} className={styles.sort} onClick={() => progressSort('qty')} />
         </TableCell>
       </TableHead>
-      {items.map(i =>
-        <Fragment key={props.getId(i)}>
-          <TableCell style={{lineHeight: 0, fontSize: 0, justifyContent: 'center'}}><img src={props.getImage(i)} /></TableCell>
-          <TableCell>
-            {(props.getRecipes?.(i).length ?? 0) >= 1 && <span data-tooltip-id={`itemToolip-${props.getId(i)}`} className={styles.linkLike}>{props.getName(i)}</span>}
-            {(props.getRecipes?.(i).length ?? 0) <= 0 && <span>{props.getName(i)}</span>}
-            {(props.getRecipes?.(i).length ?? 0) >= 1 && <ItemTooltip recipes={props.getRecipes!(i)} id={`itemToolip-${props.getId(i)}`} />}
-          </TableCell>
-          <TableCell style={{justifyContent: 'end'}}>{props.getDoq(i).toLocaleString()}</TableCell>
-        </Fragment>
-      )}
+        {items.map(i =>
+          <Fragment key={props.getId(i)}>
+            <TableCell style={{lineHeight: 0, fontSize: 0, justifyContent: 'center'}}><img src={props.getImage(i)} /></TableCell>
+            <TableCell>
+              {(props.getRecipes?.(i).length ?? 0) >= 1 && <span data-tooltip-id={`itemToolip-${props.getId(i)}`} className={styles.linkLike}>{props.getName(i)}</span>}
+              {(props.getRecipes?.(i).length ?? 0) <= 0 && <span>{props.getName(i)}</span>}
+              {(props.getRecipes?.(i).length ?? 0) >= 1 && <ItemTooltip recipes={props.getRecipes!(i)} id={`itemToolip-${props.getId(i)}`} />}
+            </TableCell>
+            <TableCell style={{justifyContent: 'end'}}>{props.getDoq(i).toLocaleString()}</TableCell>
+          </Fragment>
+        )}
     </Table>
   );
 }

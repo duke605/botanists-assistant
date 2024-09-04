@@ -7,12 +7,12 @@ import { getQuantity } from '@lib/quantity';
 import TooltipReader from 'alt1/tooltip';
 import Signal from '@lib/classes/Signal';
 import { itemsByName } from '@lib/potions';
-import { useBankedItemsInputs } from '@state/potions';
+import { useBankedItemInputs } from '@state';
 
 export const useItemFinder = () => {
   const [ signal, setSignal ] = useState<Signal>();
   const [ progress, setProgress ] = useState<{slots: Number, scanned: number}>();
-  const [ setItemQuantity ] = useBankedItemsInputs(p => [p.setItemQuantity]);
+  const setItemQuantity = useBankedItemInputs(p => p.setItemQuantity);
 
   /**
    * Looks for the bank interface and highlights the non-empty ban slots. When the user mouses over a slot

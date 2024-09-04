@@ -4,7 +4,7 @@ import { usePlannedPotions } from '@state/potions';
 import { ChatLine } from 'alt1/chatbox';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RecognizeResult } from 'tesseract.js';
-
+import { useShallow } from 'zustand/react/shallow';
 
 const mixingRegex = /^\[.+?\] You mix the (?<potion>.+).$/;
 const ambiguousMixingRegex = /^\[.+?\] You mix the ingredients.$/;
@@ -13,7 +13,9 @@ const extraPotionMaskRegex = /^\[.+?\] Your modified botanist's mask helps you t
 const potionNameRegex = /^(?<name>.+)(?: x(?<multi>\d))?/;
 
 export const usePotionWatcher = () => {
-  const [ plannedPotions, decrementPotion ] = usePlannedPotions(s => [s.potions, s.decrementPotion]);
+  const [ plannedPotions, decrementPotion ] = usePlannedPotions(
+    useShallow(s => [s.potions, s.decrementPotion]),
+  );
   const [ error, setError ] = useState<string | null>(null);
 
   /**
@@ -94,14 +96,14 @@ export const usePotionWatcher = () => {
 
   const queue = useRef(Promise.resolve());
   useEffect(() => {
-    if (Object.keys(plannedPotions).length === 0) return;
+    if (plannedPotions.size === 0) return;
 
     return chatReader.subscribe(async (lineOrError: ChatLine | Error) => {
       queue.current = queue.current
         .catch(console.error)
         .then(() => processLine(lineOrError));
     });
-  }, [Object.keys(plannedPotions).length === 0]);
+  }, [plannedPotions.size === 0]);
 
   return [error];
 }
