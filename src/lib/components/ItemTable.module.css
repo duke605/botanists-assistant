@@ -9,6 +9,10 @@
   align-items: center;
 }
 
+.optionsRow {
+  grid-column: span 3;
+}
+
 .tooltip {
   display: flex;
   gap: 5px;

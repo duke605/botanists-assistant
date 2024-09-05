@@ -1,5 +1,5 @@
 declare global {
-  interface alt1 extends import('alt1') {} 
+  interface alt1 extends import('alt1') {}
 }
 
 declare module '*?alt1' {
@@ -20,4 +20,16 @@ declare module 'virtual:potions' {
 declare module 'virtual:item-images' {
   const src: {[id: number]: string};
   export default src;
+}
+
+interface Iterator<T> {
+  map<R>(callbackFn: (element: T, index: number) => R): Iterator<R>;
+  reduce(callbackFn: (accumulator: T, element: T, index: number) => T): T;
+  reduce<R>(callbackFn: (accumulator: R, element: T, index: number) => R, initialValue: R): R;
+  forEach(callbackFn: (element: T, index: number) => void): void;
+  some(pred: (element: T, index: number) => boolean): boolean;
+  every(pred: (element: T, index: number) => boolean): boolean;
+  filter(pred: (element: T, index: number) => boolean): Iterator<T>;
+  find(pred: (element: T, index: number) => boolean): T | undefined;
+  toArray(): T[];
 }

@@ -36,7 +36,7 @@ class ChatReader {
   private findChatbox = async () => {
     for (let i = 0; !this.box; i++) {
       try {
-        this.box = (this.reader.find()?.mainbox as any).rect;
+        this.box = (this.reader.find()?.mainbox as any)?.rect;
       } catch (e) {
         console.error(e);
         break;
@@ -44,6 +44,7 @@ class ChatReader {
 
       if (!this.box && i >= 2) {
         this.sendToListeners(new Error('chatbox_not_found'));
+        return;
       } else if (!this.box) {
         await new Promise(r => setTimeout(r, 1000));
       }
@@ -52,7 +53,7 @@ class ChatReader {
 
   private readChat = async () => {
     if (!this.box) await this.findChatbox();
-    this.box = this.box!; // To shut ts up
+    if (!this.box) return;
 
     const capture = captureHold(this.box.x, this.box.y, this.box.width, this.box.height);
     const lines = this.reader.read(capture);

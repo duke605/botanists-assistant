@@ -1,4 +1,5 @@
 // import { StrictMode } from 'react';
+import 'core-js/actual/iterator';
 import ReactDOM from 'react-dom/client';
 import { App } from './components';
 import appconfig from '@assets/appconfig.json?url';

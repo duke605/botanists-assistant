@@ -1,6 +1,6 @@
 import chatReader from '@lib/chatReader';
 import { readTitle } from '@lib/progressDialogReader';
-import { usePlannedPotions } from '@state/potions';
+import { usePlannedPotions } from '@state';
 import { ChatLine } from 'alt1/chatbox';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RecognizeResult } from 'tesseract.js';

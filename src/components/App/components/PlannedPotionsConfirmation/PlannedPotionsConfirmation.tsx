@@ -2,7 +2,7 @@ import { Button, Heading, Table, TableCell, TableHead } from '@lib/components';
 import { Item, makeRecipeToolTip } from '@lib/potions';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { Fragment } from 'react/jsx-runtime';
-import { PlannedPotionsState, usePlannedPotions } from '@state/potions';
+import { PlannedPotionsState, usePlannedPotions } from '@state';
 import { useCallback } from 'react';
 import styles from './PlannedPotionConfirmation.module.css';
 

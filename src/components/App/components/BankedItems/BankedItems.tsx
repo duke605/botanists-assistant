@@ -12,7 +12,10 @@ export const BankedItems = () => {
   const { findItems, cancelSearching, isSearching } = useItemFinder();
   const items = useMemo(() => {
     return rawItems.map(i => ({
-      ...i,
+      name: i.item.name,
+      id: i.item.id,
+      doq: i.qty,
+      image: i.item.imageUrl,
       recipes: i.item.recipes.map(r => ({
         name: r.name,
         inputs: r.inputs.map(i => ({qty: i.quantity, name: i.item.name, image: i.item.imageUrl})),
@@ -39,11 +42,6 @@ export const BankedItems = () => {
         : "Slowly drag your mouse from slot to slot. When the contents of the slot is read, the slot will turn from red to green. When all slots have turned green the import will automatically stop. You can manually stop the import at any time by clicking the cancel import button."
       }
       items={items}
-      getId={i => i.item.id}
-      getImage={i => i.item.imageUrl}
-      getDoq={i => i.qty}
-      getName={i => i.item.name}
-      getRecipes={i => i.recipes}
     />
   </>
 }

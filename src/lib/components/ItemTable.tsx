@@ -2,7 +2,7 @@ import { Checkbox } from './Checkbox';
 import { Sort, Table, TableCell, TableHead, TextField } from '.';
 import { useSorting } from '@lib/hooks';
 import { Fragment } from 'react/jsx-runtime';
-import { ChangeEvent, useCallback, useDeferredValue, useMemo, useState } from 'react';
+import { ChangeEvent, ReactNode, useCallback, useDeferredValue, useMemo, useState } from 'react';
 import Fuse from 'fuse.js';
 import { Tooltip } from 'react-tooltip';
 import classNames from 'classnames';
@@ -14,18 +14,24 @@ interface RecipeResult {
   default: boolean;
 }
 
-interface ItemProps<T> {
+export interface ItemTableItem {
+  name: string;
+  doq: number;
+  id: number;
+  image: string;
+  recipes?: RecipeResult[];
+}
+
+export interface ItemTableProps<T extends ItemTableItem> {
   items: T[];
-  getName: (item: T) => string;
-  getDoq: (item: T) => number;
-  getId: (item: T) => string | number;
-  getImage: (item: T) => string;
-  getRecipes?: (item: T) => RecipeResult[];
+  showAlternateRecipes?: boolean;
+  options?: ReactNode;
 }
 
 interface ItemTooltipProps {
   id: string;
   recipes: RecipeResult[];
+  showAlternateRecipes?: boolean;
 }
 
 const ItemTooltip = (props: ItemTooltipProps) => {
@@ -34,7 +40,7 @@ const ItemTooltip = (props: ItemTooltipProps) => {
 
   return (
     <Tooltip className={`tooltip ${styles.tooltip}`} id={props.id} float place="bottom" clickable={props.recipes.length > 1}>
-      {props.recipes.length > 1 && (
+      {props.recipes.length > 1 && (props.showAlternateRecipes ?? true) && (
         <div className={styles.recipeNames}>
           {props.recipes.map((r, i) =>
             <span
@@ -58,7 +64,7 @@ const ItemTooltip = (props: ItemTooltipProps) => {
   );
 }
 
-export const ItemTable = <T,>(props: ItemProps<T>) => {
+export const ItemTable = <T extends ItemTableItem,>(props: ItemTableProps<T>) => {
   const [ sortColumn, sortDirection, progressSort, setDirection ] = useSorting<'name' | 'qty'>();
   const [ search, setSearch ] = useState('');
   const [ fuzzyMatch, setFuzzyMatching ] = useState(false);
@@ -69,15 +75,14 @@ export const ItemTable = <T,>(props: ItemProps<T>) => {
 
     if (fuzzyMatch) {
       const fuse = new Fuse(props.items, {
-        keys: ['N/A'],
-        getFn: i => props.getName(i),
+        keys: ['name'],
         shouldSort: true,
       });
       
       return fuse.search(deferredSearch).map(i => i.item);
     }
     
-    return props.items.filter(i => props.getName(i).toLowerCase().includes(deferredSearch.toLowerCase()));
+    return props.items.filter(i => i.name.toLowerCase().includes(deferredSearch.toLowerCase()));
   }, [deferredSearch, props.items, fuzzyMatch]);
   items = useMemo(() => {
     const localItems = [...items];
@@ -85,8 +90,8 @@ export const ItemTable = <T,>(props: ItemProps<T>) => {
       const [ first, second ] = sortDirection === 1 ? [a,b] : [b,a];
 
       return sortColumn === 'name'
-        ? props.getName(first).localeCompare(props.getName(second))
-        : props.getDoq(first) - props.getDoq(second);
+        ? first.name.localeCompare(second.name)
+        : first.doq - second.doq;
     });
 
     return localItems;
@@ -98,7 +103,7 @@ export const ItemTable = <T,>(props: ItemProps<T>) => {
   }, []);
 
   return (
-    <Table columnWidths="51px 1fr min-content" rowHeight="1fr" firstRowHeight="min-content 42px">
+    <Table columnWidths="51px 1fr min-content" rowHeight="1fr" firstRowHeight={classNames('min-content', props.options && 'min-content','42px')}>
       <TableHead>
         <TableCell className={styles.searchRow}>
           Search:
@@ -107,6 +112,7 @@ export const ItemTable = <T,>(props: ItemProps<T>) => {
             <Checkbox checked={fuzzyMatch} data-tooltip-id="tooltip" data-tooltip-content="Fuzzy matching" onChange={e => setFuzzyMatching(e.currentTarget.checked)} />
           </div>
         </TableCell>
+        {props.options && <TableCell className={styles.optionsRow} children={props.options} />}
         <TableCell></TableCell>
         <TableCell style={{display: 'flex', justifyContent: 'space-between'}}>
           Name
@@ -118,14 +124,14 @@ export const ItemTable = <T,>(props: ItemProps<T>) => {
         </TableCell>
       </TableHead>
         {items.map(i =>
-          <Fragment key={props.getId(i)}>
-            <TableCell style={{lineHeight: 0, fontSize: 0, justifyContent: 'center'}}><img src={props.getImage(i)} /></TableCell>
+          <Fragment key={i.id}>
+            <TableCell style={{lineHeight: 0, fontSize: 0, justifyContent: 'center'}}><img src={i.image} /></TableCell>
             <TableCell>
-              {(props.getRecipes?.(i).length ?? 0) >= 1 && <span data-tooltip-id={`itemToolip-${props.getId(i)}`} className={styles.linkLike}>{props.getName(i)}</span>}
-              {(props.getRecipes?.(i).length ?? 0) <= 0 && <span>{props.getName(i)}</span>}
-              {(props.getRecipes?.(i).length ?? 0) >= 1 && <ItemTooltip recipes={props.getRecipes!(i)} id={`itemToolip-${props.getId(i)}`} />}
+              {(i.recipes?.length ?? 0) >= 1 && <span data-tooltip-id={`itemToolip-${i.id}`} className={styles.linkLike}>{i.name}</span>}
+              {(i.recipes?.length ?? 0) <= 0 && <span>{i.name}</span>}
+              {(i.recipes?.length ?? 0) >= 1 && <ItemTooltip recipes={i.recipes!} id={`itemToolip-${i.id}`} showAlternateRecipes={props.showAlternateRecipes} />}
             </TableCell>
-            <TableCell style={{justifyContent: 'end'}}>{props.getDoq(i).toLocaleString()}</TableCell>
+            <TableCell style={{justifyContent: 'end'}}>{i.doq.toLocaleString()}</TableCell>
           </Fragment>
         )}
     </Table>
