@@ -33,14 +33,14 @@ const router = createMemoryRouter([
           }
         ]
       },
-      {
-        path: '/tracked_potions',
-        element: <div>Tracked potions</div>
-      },
-      {
-        path: '/settings',
-        element: <div>Settings</div>
-      },
+      // {
+      //   path: '/tracked_potions',
+      //   element: <div>Tracked potions</div>
+      // },
+      // {
+      //   path: '/settings',
+      //   element: <div>Settings</div>
+      // },
       {
         path: '/inventory',
         Component: BankedItems,
