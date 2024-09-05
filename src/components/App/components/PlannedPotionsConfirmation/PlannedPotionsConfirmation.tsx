@@ -1,35 +1,14 @@
-import { Button, Heading, Table, TableCell, TableHead } from '@lib/components';
-import { Item, makeRecipeToolTip } from '@lib/potions';
+import { Button, DoseModeOption, Heading, ItemTable, ItemTableItem } from '@lib/components';
+import { Item } from '@lib/potions';
 import { Navigate, useLocation, useNavigate } from 'react-router';
-import { Fragment } from 'react/jsx-runtime';
 import { PlannedPotionsState, usePlannedPotions } from '@state';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import styles from './PlannedPotionConfirmation.module.css';
 
 interface TableProps {
   inputs: {item: Item, quantity: number}[];
   paths: Record<number, string>;
-}
-
-const LocalTable = (props: TableProps) => {
-  const paths = props.paths;
-
-  return (
-    <Table columnWidths="min-content 1fr min-content" rowHeight="1fr" firstRowHeight="min-content 38px">
-      <TableHead>
-        <TableCell></TableCell>
-        <TableCell>Name</TableCell>
-        <TableCell>Quantity</TableCell>
-      </TableHead>
-      {props.inputs.map(i =>
-        <Fragment key={i.item.id}>
-          <TableCell style={{lineHeight: 0, fontSize: 0, justifyContent: 'center'}}><img src={i.item.imageUrl} /></TableCell>
-          <TableCell><span className={styles.linkLink} data-tooltip-id="tooltip" data-tooltip-html={makeRecipeToolTip(paths, i.item)}>{i.item.name}</span></TableCell>
-          <TableCell style={{justifyContent: 'end'}}>{i.quantity}</TableCell>
-        </Fragment>
-      )}
-    </Table>
-  );
 }
 
 export const PlannedPotionsConfirmation = () => {
@@ -41,8 +20,53 @@ export const PlannedPotionsConfirmation = () => {
     settings: PlannedPotionsState['settings'],
   } = useLocation().state;
   const navigate = useNavigate();
-  const setPotions = usePlannedPotions(s => s.setPotions);
+  const [ setPotions, setDoseMode, doseMode ] = usePlannedPotions(
+    useShallow(s => [s.setPotions, s.setAggregateByPage, s.aggregateByPage]),
+  );
   if (!inputs?.length) return <Navigate to=".." relative="path" />;
+
+  const potions = useMemo(() => {
+    if (!doseMode) return inputs.filter(i => i.item.isPotion()).map<ItemTableItem>(i => ({
+      id: i.item.id,
+      image: i.item.imageUrl,
+      doq: i.quantity,
+      name: i.item.name,
+      recipes: i.item.recipes.map(r => ({
+        name: r.name,
+        default: r.name === settings.recipePaths[i.item.pageId],
+        inputs: r.inputs.map(i => ({name: i.item.name, image: i.item.imageUrl, qty: i.quantity})),
+      })),
+    }));
+
+    return inputs.filter(i => i.item.isPotion()).reduce((m, i) => {
+      if (!m.has(i.item.pageId)) {
+        m.set(i.item.pageId, {
+          id: i.item.pageId,
+          image: i.item.page.image,
+          doq: 0,
+          name: i.item.page.name,
+          recipes: i.item.recipes.map(r => ({
+            name: r.name,
+            default: r.name === settings.recipePaths[i.item.pageId],
+            inputs: r.inputs.map(i => ({name: i.item.name, image: i.item.imageUrl, qty: i.quantity})),
+          })),
+        });
+      }
+
+      m.get(i.item.pageId)!.doq += i.quantity * (i.item.doses ?? 1);
+
+      return m;
+    }, new Map<number, ItemTableItem>()).values().toArray();
+  }, [inputs, settings.recipePaths, doseMode]);
+
+  const secondaries = useMemo(() => {
+    return inputs.filter(i => !i.item.isPotion()).map(i => ({
+      id: i.item.id,
+      image: i.item.imageUrl,
+      doq: i.quantity,
+      name: i.item.name,
+    }));
+  }, [inputs, settings.recipePaths]);
 
   const confirm = useCallback(() => {
     // Filtering out non-potion inputs and converting potion inputs to doses (if they use doses)
@@ -58,9 +82,20 @@ export const PlannedPotionsConfirmation = () => {
 
   return <>
     <Heading>Potions</Heading>
-    <LocalTable inputs={inputs.filter(i => i.item.isPotion())} paths={settings!.recipePaths} />
+    <ItemTable
+      showAlternateRecipes={false}
+      items={potions}
+      options={<div className={styles.options}>
+        <DoseModeOption checked={doseMode} onChange={setDoseMode} />
+      </div>}
+    />
+    {/* <LocalTable inputs={inputs.filter(i => i.item.isPotion())} paths={settings!.recipePaths} /> */}
     <Heading>Secondaries</Heading>
-    <LocalTable inputs={inputs.filter(i => !i.item.isPotion())} paths={settings!.recipePaths} />
+    <ItemTable
+      showAlternateRecipes={false}
+      items={secondaries}
+    />
+    {/* <LocalTable inputs={inputs.filter(i => !i.item.isPotion())} paths={settings!.recipePaths} /> */}
     <div className={styles.buttonRow}>
       <Button danger onClick={() => navigate(-1)}>Cancel</Button>
       <Button onClick={confirm}>Confirm</Button>

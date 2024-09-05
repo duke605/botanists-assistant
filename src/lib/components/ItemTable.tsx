@@ -39,7 +39,7 @@ const ItemTooltip = (props: ItemTooltipProps) => {
   const recipe = props.recipes[recipeIdx] ?? props.recipes[0];
 
   return (
-    <Tooltip className={`tooltip ${styles.tooltip}`} id={props.id} float place="bottom" clickable={props.recipes.length > 1}>
+    <Tooltip className={`tooltip ${styles.tooltip}`} id={props.id} float place="bottom" clickable={props.recipes.length > 1 && props.showAlternateRecipes} noArrow>
       {props.recipes.length > 1 && (props.showAlternateRecipes ?? true) && (
         <div className={styles.recipeNames}>
           {props.recipes.map((r, i) =>
@@ -127,9 +127,12 @@ export const ItemTable = <T extends ItemTableItem,>(props: ItemTableProps<T>) =>
           <Fragment key={i.id}>
             <TableCell style={{lineHeight: 0, fontSize: 0, justifyContent: 'center'}}><img src={i.image} /></TableCell>
             <TableCell>
-              {(i.recipes?.length ?? 0) >= 1 && <span data-tooltip-id={`itemToolip-${i.id}`} className={styles.linkLike}>{i.name}</span>}
-              {(i.recipes?.length ?? 0) <= 0 && <span>{i.name}</span>}
-              {(i.recipes?.length ?? 0) >= 1 && <ItemTooltip recipes={i.recipes!} id={`itemToolip-${i.id}`} showAlternateRecipes={props.showAlternateRecipes} />}
+              {(i.recipes?.length ?? 0) >= 1 ? <>
+                <span data-tooltip-id={`itemToolip-${i.id}`} className={styles.linkLike}>{i.name}</span>
+                <ItemTooltip recipes={i.recipes!} id={`itemToolip-${i.id}`} showAlternateRecipes={props.showAlternateRecipes} />
+              </> : (
+                <span>{i.name}</span>
+              )}
             </TableCell>
             <TableCell style={{justifyContent: 'end'}}>{i.doq.toLocaleString()}</TableCell>
           </Fragment>

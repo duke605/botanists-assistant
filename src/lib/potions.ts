@@ -357,31 +357,6 @@ const calcExtraDoseChance = (currentChance: number, ...chances: number[]) => {
   return currentChance;
 }
 
-/**
- * Builds the HTML to show the recipe for the item in a tooltip
- */
-export const makeRecipeToolTip = (paths: Record<PageId, string>, item: Item | Page) => {
-  const page = item instanceof Item ? item.page : item;
-  const recipes = page.recipes;
-  if (!recipes.length) return '';
-
-  let recipe = !paths[page.id]
-    ? recipes[0]
-    : recipes.find(r => r.name.toLowerCase() === paths[page.id].toLowerCase())
-    ?? recipes[0];
-
-  return recipe.inputs
-    .map(i => `
-      <div style="display: inline-flex; align-items: center; gap: 5px">
-        <span>${i.quantity}</span>
-        <span>x</span>
-        <img src="${i.item.imageUrl}" style="object-fit: contain; height: 20px; width: 20px" />
-        <span data-sepia>${i.item.name}</span>
-      </div>
-    `.trim())
-    .join('<br />');
-}
-
 export const items = Object.values(herbloreData.items).map(i => new Item(
   i.id,
   i.name,

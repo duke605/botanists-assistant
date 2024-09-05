@@ -1,13 +1,10 @@
 import { useAggregatedPlannedPotions, usePlannedPotions } from '@state';
-import { Button, Checkbox, Heading, ItemListingPage } from '@lib/components';
+import { Button, Heading, ItemListingPage, DoseModeOption } from '@lib/components';
 import { useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
-import { useId, useMemo } from 'react';
-import { itemsByName } from '@lib/potions';
+import { useMemo } from 'react';
 import styles from './PlannedPotions.module.css';
-import { Tooltip } from 'react-tooltip';
 
-const singleDoseSuperDefencePotions = itemsByName.get('super defence (1)')!;
 
 export const PlannedPotions = () => {
   const navigate = useNavigate();
@@ -38,17 +35,7 @@ export const PlannedPotions = () => {
         description="No potions are planned. Click button above to setup a potion, and quantity of that potion, you wish to make."
         showAlternateRecipes={false}
         options={<div className={styles.options}>
-          <div className={styles.option}>
-            <img src={singleDoseSuperDefencePotions.imageUrl} style={{objectFit: 'contain', maxWidth: '24px', maxHeight: '24px'}}/>
-            <Checkbox
-              checked={aggregateByPage}
-              onChange={(e) => setAggregateByPage(e.currentTarget.checked)}
-              data-tooltip-id="tooltip"
-              data-tooltip-html={`${aggregateByPage ? 'Disable' : 'Enable'} <span data-sepia>Dose mode</span><br />
-Groups potions by type and shows the quantity to make in doses.<br /><br />
-<span data-muted>Warning: Disabling this mode is computationally expensive. Enable this mode again if you experience stuttering.</span>`}
-            />
-          </div>
+          <DoseModeOption checked={aggregateByPage} onChange={setAggregateByPage} />
         </div>}
         buttons={<>
           {hasPotionsToMake && <Button danger onClick={clearPotions}>Clear potions</Button>}

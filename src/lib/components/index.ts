@@ -8,3 +8,4 @@ export * from './Heading';
 export * from './Sort';
 export * from './ItemTable';
 export * from './ItemListingPage';
+export * from './DoseModeOption';
