@@ -1,0 +1,45 @@
+html body .toast {
+  border: 5px solid;
+  border-image: url(../../../../assets/toastBorder.png) 5 round;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 0;
+
+  --toastify-text-color-light: #ebe0bc;
+  --toastify-text-color-dark: #121212;
+  --toastify-text-color-info: #3498db;
+  --toastify-text-color-success: #07bc0c;
+  --toastify-text-color-warning: #f1c40f;
+  --toastify-text-color-error: #f00;
+
+  --toastify-toast-min-height: 0;
+}
+
+.toast:global(.Toastify__toast--error) {
+  color: var(--toastify-text-color-error);
+}
+
+.toast:global(.Toastify__toast--success) {
+  color: var(--toastify-text-color-success);
+}
+
+.toast :global(.Toastify__toast-body) {
+  padding: 7px 10px;
+  text-align: center;
+}
+
+.toast :global(.Toastify__close-button) {
+  color: #fff;
+}
+
+.enter {
+  animation: fade linear 300ms;
+}
+
+.exit {
+  animation: reverse fade linear 300ms;
+}
+
+@keyframes fade {
+  from { opacity: 0; scale: 0.9 }
+  to { opacity: 1; }
+}

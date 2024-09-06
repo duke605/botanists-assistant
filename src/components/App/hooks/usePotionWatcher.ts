@@ -2,7 +2,8 @@ import chatReader from '@lib/chatReader';
 import { readTitle } from '@lib/progressDialogReader';
 import { usePlannedPotions } from '@state';
 import { ChatLine } from 'alt1/chatbox';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import { toast } from 'react-toastify';
 import { RecognizeResult } from 'tesseract.js';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -12,11 +13,37 @@ const extraPotionWellRegex = /^\[.+?\] You mix such a potent potion that you fil
 const extraPotionMaskRegex = /^\[.+?\] Your modified botanist's mask helps you to create an extra potion./;
 const potionNameRegex = /^(?<name>.+)(?: x(?<multi>\d))?/;
 
+const check = (
+  maybeError: Error | unknown,
+  errorType: string,
+  notificationMessage: string,
+  notifyAfter: number,
+  notifyBackoff: number,
+  state: {
+    lastNotified: number;
+    lastSuccess: number;
+  }
+) => {
+  if (!(maybeError instanceof Error) || maybeError.message !== errorType) {
+    state.lastSuccess = Date.now();
+    return;
+  }
+
+  const timeSinceLastSuccess = Date.now() - state.lastSuccess;
+  const timeSinceLastNotification = Date.now() - state.lastNotified;
+
+  if (timeSinceLastSuccess > notifyAfter && timeSinceLastNotification > notifyBackoff) {
+    state.lastNotified = Date.now();
+    toast.error(notificationMessage, {icon: false, autoClose: 5000});
+  }
+
+  throw maybeError;
+}
+
 export const usePotionWatcher = () => {
   const [ plannedPotions, decrementPotion ] = usePlannedPotions(
     useShallow(s => [s.potions, s.decrementPotion]),
   );
-  const [ error, setError ] = useState<string | null>(null);
 
   /**
    * Takes in the full name of the potion (Eg. Super antipoison (3)) and decrements it from the planned
@@ -40,18 +67,16 @@ export const usePotionWatcher = () => {
 
   const lastDetect = useRef(0);
   const activePotion = useRef('');
+  const chatbox = useRef({lastSuccess: Date.now(), lastNotified: 0});
+  const timestamps = useRef({lastSuccess: Date.now(), lastNotified: 0});
   const processLine = useCallback(async (lineOrError: ChatLine | Error) => {
-    if (lineOrError instanceof Error) {
-      if (lineOrError.message === 'chatbox_not_found') {
-        setError('chatbox_not_found');
-        return;
-      }
-
-      console.error(lineOrError);
+    try {
+      check(lineOrError, 'chatbox_not_found', 'Chat box could not be found', 4000, 15000, chatbox.current);
+      check(lineOrError, 'timestamps_not_found', 'Chat timestamps were not detected', 4000, 15000, timestamps.current);
+      if (lineOrError instanceof Error) throw lineOrError;
+    } catch {
       return;
     }
-
-    setError(null);
 
     const ambiguousMixing = lineOrError.text.match(ambiguousMixingRegex);
     if (ambiguousMixing) {
@@ -104,6 +129,4 @@ export const usePotionWatcher = () => {
         .then(() => processLine(lineOrError));
     });
   }, [plannedPotions.size === 0]);
-
-  return [error];
 }

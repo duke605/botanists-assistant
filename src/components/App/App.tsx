@@ -1,6 +1,6 @@
 import { TabRow } from './components/TabRow/TabRow';
 import { createMemoryRouter, RouterProvider, Outlet } from 'react-router';
-import { BankedItems, PlannedPotions, PlannedPotionsConfirmation, PlannedPotionsSetup } from './components';
+import { BankedItems, PlannedPotions, PlannedPotionsConfirmation, PlannedPotionsSetup, Toasts } from './components';
 import { usePotionWatcher } from './hooks';
 import { Tooltip } from 'react-tooltip';
 import styles from './App.module.css';
@@ -57,5 +57,6 @@ export const App = () => {
   return <>
     <RouterProvider router={router} />
     <Tooltip id="tooltip" className={styles.tooltip} float place="bottom" offset={20} noArrow />
+    <Toasts />
   </>;
 };
