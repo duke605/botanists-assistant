@@ -42,6 +42,12 @@ interface CalculateInputOptionsWithInventory extends CalculationOptions {
   inventory?: Record<ItemId, DoseOrQty>;
 }
 
+interface CalculateInputsContext {
+  inputs: Record<ItemId, number>;
+  exp: number;
+  ticks: number;
+}
+
 class Inventory {
   private inventory: Record<PageId, DoseOrQty>;
 
@@ -139,20 +145,25 @@ export class Page {
 
     const inputs: Record<ItemId, Quantity> = {};
     const inventory = new Inventory(options?.inventory ?? {});
+    const context = {inputs, exp: 0, ticks: 0};
 
     // Setting the target potion's quantity/dose to 0 since that's what we want to make
     // on top of the potions we already have banked
     inventory.setItemDoq(this.id, 0);
 
-    startingRecipe.calculateInputs(needed, inputs, {
+    startingRecipe.calculateInputs(needed, context, {
       ...options,
       inventory,
     });
 
-    return Object.entries(inputs).map(([ itemId, quantity ]) => ({
-      item: itemsById.get(+itemId)!,
-      quantity,
-    }));
+    return {
+      exp: context.exp,
+      ticks: context.ticks,
+      inputs: Object.entries(inputs).map(([ itemId, quantity ]) => ({
+        item: itemsById.get(+itemId)!,
+        quantity,
+      })),
+    };
   }
 }
 
@@ -294,7 +305,7 @@ export class Recipe {
     this.secondaries = this.inputs.filter(i => i.isSecondary);
   }
 
-  calculateInputs = (quantityNeeded: number, inputs: Record<ItemId, Quantity>, options?: CalculationOptions & {inventory?: Inventory}, itemNeeded = this.output.item) => {
+  calculateInputs = (quantityNeeded: number, context: CalculateInputsContext, options?: CalculationOptions & {inventory?: Inventory}, itemNeeded = this.output.item) => {
     // Converting the potion to doses and then back into quantity for the output item if the item needed and
     // output item are different. (They are still the same potion just different dosages)
     if (itemNeeded.doses && this.output.item.id !== itemNeeded.id) {
@@ -310,8 +321,10 @@ export class Recipe {
     const outputQuantity = this.output.calculateQuantity(options);
     const operationsNeeded = Math.ceil(quantityNeeded / outputQuantity);
     
-    inputs[itemNeeded.id] ??= 0;
-    inputs[itemNeeded.id] += Math.ceil(quantityNeeded);
+    context.exp += this.exp * operationsNeeded;
+    context.ticks += (this.ticks?.slice(-1)[0] ?? 0) * operationsNeeded;
+    context.inputs[itemNeeded.id] ??= 0;
+    context.inputs[itemNeeded.id] += Math.ceil(quantityNeeded);
     
     for (const input of this.inputs) {
       let inputQtyNeeded = operationsNeeded * input.quantity;
@@ -330,8 +343,8 @@ export class Recipe {
 
         if (inputQtyNeeded === 0) continue;
 
-        inputs[input.itemId] ??= 0;
-        inputs[input.itemId] += Math.ceil(inputQtyNeeded);
+        context.inputs[input.itemId] ??= 0;
+        context.inputs[input.itemId] += Math.ceil(inputQtyNeeded);
         continue;
       }
 
@@ -343,7 +356,7 @@ export class Recipe {
         : input.item.recipes[0];
       if (!recipe) throw new Error('recipe_not_found');
 
-      recipe.calculateInputs(inputQtyNeeded, inputs, options, input.item);
+      recipe.calculateInputs(inputQtyNeeded, context, options, input.item);
     }
   }
 }

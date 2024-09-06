@@ -4,6 +4,8 @@ import { Navigate, useLocation, useNavigate } from 'react-router';
 import { PlannedPotionsState, usePlannedPotions } from '@state';
 import { useCallback, useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import herbloreImage from '@assets/herblore.png';
+import timerImage from '@assets/timer.png';
 import styles from './PlannedPotionConfirmation.module.css';
 
 interface TableProps {
@@ -15,15 +17,28 @@ export const PlannedPotionsConfirmation = () => {
   const {
     inputs,
     settings,
+    exp,
+    ticks,
   }: {
-    inputs: TableProps['inputs'],
-    settings: PlannedPotionsState['settings'],
+    inputs: TableProps['inputs'];
+    exp: number;
+    settings: PlannedPotionsState['settings'];
+    ticks: number;
   } = useLocation().state;
   const navigate = useNavigate();
   const [ setPotions, setDoseMode, doseMode ] = usePlannedPotions(
     useShallow(s => [s.setPotions, s.setAggregateByPage, s.aggregateByPage]),
   );
   if (!inputs?.length) return <Navigate to=".." relative="path" />;
+
+  const time = useMemo(() => {
+    const ms = ticks * 600 / 1000;
+    const hours = Math.round(ms / (60 * 60));
+    const minutes = Math.round((ms - hours * 60 * 60) / 60);
+    const seconds = Math.round(ms - (minutes * 60 + hours * 60 * 60));
+
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+  }, [ticks]);
 
   const potions = useMemo(() => {
     if (!doseMode) return inputs.filter(i => i.item.isPotion()).map<ItemTableItem>(i => ({
@@ -82,6 +97,16 @@ export const PlannedPotionsConfirmation = () => {
 
   return <>
     <Heading>Potions</Heading>
+    <div className={styles.meta}>
+      <span className={styles.metaItem} data-tooltip-content="Experience" data-tooltip-id="tooltip">
+        <img src={herbloreImage} />
+        {exp.toLocaleString()}
+      </span>
+      <span className={styles.metaItem} data-tooltip-content="Est. Time" data-tooltip-id="tooltip">
+        <img src={timerImage} />
+        {time}
+      </span>
+    </div>
     <ItemTable
       showAlternateRecipes={false}
       items={potions}
@@ -89,13 +114,11 @@ export const PlannedPotionsConfirmation = () => {
         <DoseModeOption checked={doseMode} onChange={setDoseMode} />
       </div>}
     />
-    {/* <LocalTable inputs={inputs.filter(i => i.item.isPotion())} paths={settings!.recipePaths} /> */}
     <Heading>Secondaries</Heading>
     <ItemTable
       showAlternateRecipes={false}
       items={secondaries}
     />
-    {/* <LocalTable inputs={inputs.filter(i => !i.item.isPotion())} paths={settings!.recipePaths} /> */}
     <div className={styles.buttonRow}>
       <Button danger onClick={() => navigate(-1)}>Cancel</Button>
       <Button onClick={confirm}>Confirm</Button>

@@ -42,7 +42,7 @@
   --rt-color-dark: #000;
   --rt-color-white: #ebe0bc;
   border: 4px solid;
-  border-image: url(../../assets/border.png) 4;
+  border-image: url(../../assets/border.png) 4 round;
   padding: 3px 10px;
   z-index: 100;
   text-align: center;

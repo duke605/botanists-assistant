@@ -22,3 +22,23 @@
   align-items: center;
   justify-content: center;
 }
+
+.meta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.metaItem {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+
+.metaItem img {
+  height: 32px;
+  object-fit: contain;
+}

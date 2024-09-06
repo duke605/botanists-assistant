@@ -92,7 +92,7 @@ export const PlannedPotionsSetup = () => {
   const calculateInputs = useCallback(() => {
     if (!potionPage) return;
     
-    const inputs = potionPage.calculateInputs(qtyToMake, {
+    const { inputs, exp, ticks } = potionPage.calculateInputs(qtyToMake, {
       modifiedBotanistMask,
       morytaniaLegs,
       botanistsNecklace,
@@ -112,7 +112,7 @@ export const PlannedPotionsSetup = () => {
 
     const settings: PlannedPotionsState['settings'] = {recipePaths};
     navigate('/planned_potions/confirm', {
-      state: {inputs, settings},
+      state: {inputs, settings, exp, ticks},
     });
   }, [
     potionPage,
