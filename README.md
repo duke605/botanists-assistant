@@ -35,6 +35,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Contact
 
-For support or inquiries, please reach out via [GitHub Issues](https://github.com/yourusername/botanists-assistant/issues)
+For support or inquiries, please reach out via [GitHub Issues](https://github.com/duke605/botanists-assistant/issues)
 
 Happy potion crafting!
