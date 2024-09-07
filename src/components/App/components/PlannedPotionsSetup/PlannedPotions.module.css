@@ -11,6 +11,7 @@
   gap: 5px;
   justify-content: start;
   align-items: center;
+  text-transform: capitalize;
 }
 
 .center {
@@ -19,6 +20,7 @@
 
 .label img {
   height: 22px;
+  object-fit: contain;
 }
 
 .info {
@@ -40,23 +42,12 @@
   font-weight: bold;
 }
 
-.sectionHeading {
-  color: #ffcb05;
-  text-transform: uppercase;
-  font-family: serif;
-  text-shadow: 1px 1px 1px #110706;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  line-height: normal;
+.armourWarning {
+  color: #ff0;
   grid-column: span 2;
-  margin: 3px 0;
-  height: 57px;
-  width: 80%;
-  padding: 0 33px;
+  text-align: center;
+  text-wrap: balance;
   margin: 0 auto;
-  background: url(../../../../assets/headerLeft.png) center left no-repeat,
-              url(../../../../assets/headerRight.png) center right no-repeat,
-              url(../../../../assets/headerMiddle.png) center center repeat content-box;
+  max-width: 90vw;
 }
 

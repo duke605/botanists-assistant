@@ -101,7 +101,7 @@ export const PlannedPotionsConfirmation = () => {
     <div className={styles.meta}>
       <span className={styles.metaItem} data-tooltip-content="Experience" data-tooltip-id="tooltip">
         <img src={herbloreImage} />
-        {exp.toLocaleString()}
+        {(Math.round(exp * 100) / 100).toLocaleString()}
       </span>
       <span className={styles.metaItem} data-tooltip-content="Est. Time" data-tooltip-id="tooltip">
         <img src={timerImage} />

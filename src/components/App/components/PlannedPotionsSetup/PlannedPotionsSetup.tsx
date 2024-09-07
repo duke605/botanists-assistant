@@ -1,5 +1,5 @@
 import { Button, Checkbox, Heading, Select, TextField } from '@lib/components';
-import { PlannedPotionsState, useBankedItemInputs, usePotionPlanner } from '@state';
+import { PlannedPotionsState, PotionPlannerState, useBankedItemInputs, usePotionPlanner } from '@state';
 import { Fragment, useCallback, useMemo, useState } from 'react';
 import modifiedBotanistMaskIcon from '@assets/Modified_botanist\'s_mask.png';
 import broochOfTheGodsIcon from '@assets/Brooch_of_the_Gods.png';
@@ -9,7 +9,13 @@ import desertAmuletIcon from '@assets/Desert_amulet_4.png';
 import scrollOfCleansingIcon from '@assets/Scroll_of_cleansing.png';
 import morytaniaLegsIcon from '@assets/Morytania_legs_4.png';
 import envenomedIcon from '@assets/Envenomed.png';
+import meilyrClanIcon from '@assets/Meilyr_Clan.png';
 import factoryOutfitIcon from '@assets/Factory_top.png';
+import torstolIncenseSticksIcon from '@assets/Torstol_incense_sticks.png';
+import umGrimIcon from '@assets/Underworld_Grimoire_4.png';
+import botanistTopIcon from '@assets/Botanist\'s_top.png';
+import perfectJujuHerblorePotionIcon from '@assets/Perfect_juju_herblore_potion_(4).png';
+import wiseIcon from '@assets/Wise.png';
 import { useNavigate } from 'react-router';
 import { Page, pagesById, Recipe, pages } from '@lib/potions';
 import styles from './PlannedPotions.module.css';
@@ -19,7 +25,7 @@ const options = pages.filter(p => p.isPotion()).map(potionPage =>
 )
 
 interface SimpleOptionsProps {
-  option: string;
+  option: Exclude<keyof PotionPlannerState, 'recipePaths' | 'targetPotion' | 'underworldGrimoire' | 'botanistsOutfit' | 'torstolIncense' | 'arbitraryXp'>;
   label: string;
   icon: string;
   help?: string;
@@ -60,6 +66,11 @@ export const PlannedPotionsSetup = () => {
     scrollOfCleansing,
     well,
     useInventory,
+    botanistsOutfit,
+    meilyrHour,
+    torstolIncense,
+    arbitraryXp,
+    perfectJujuHerblorePotion,
   } = usePotionPlanner();
   const inventory = useBankedItemInputs(s => s.entries);
   const [ qtyToMake, setQtyToMake ] = useState(0);
@@ -104,6 +115,11 @@ export const PlannedPotionsSetup = () => {
       underworldGrimoire,
       well,
       recipePaths,
+      arbitraryXp,
+      botanistsOutfit,
+      meilyrHour,
+      perfectJujuHerblorePotion,
+      torstolIncense,
       inventory: !useInventory ? {} : inventory.reduce((acc, entry) => {
         acc[entry.item.id] = {itemId: entry.item, qty: entry.qty};
         return acc;
@@ -130,22 +146,65 @@ export const PlannedPotionsSetup = () => {
     well,
     qtyToMake,
     useInventory && inventory,
+    arbitraryXp,
+    torstolIncense,
+    meilyrHour,
+    perfectJujuHerblorePotion,
+    arbitraryXp,
   ]);
-
-
+  
   return (
     <div className={styles.root}>
       <Heading>Bonuses</Heading>
       <SimpleOption label="Botanist's Amulet" option="botanistsNecklace" icon={botanistsNecklaceIcon} help="Gives a <span data-cyan>5%</span> chance to make a 4-dose instead of a 3-dose when worn" />
-      <SimpleOption label="Modified Botanist's Mask" option="modifiedBotanistMask" icon={modifiedBotanistMaskIcon} help="Gives a <span data-cyan>5%</span> chance duplicate potions when worn" />
-      <SimpleOption label="Portable Well" option="well" icon={wellIcon} help="Gives a <span data-cyan>5%</span> chance to duplicate potions when mixing potions adjacent to a portable well" />
+      <SimpleOption label="Modified Botanist's Mask" option="modifiedBotanistMask" icon={modifiedBotanistMaskIcon} help="Gives a <span data-cyan>5%</span> chance to duplicate potions and <span data-cyan>1%</span> extra exp when worn" />
+      <SimpleOption label="Portable Well" option="well" icon={wellIcon} help="Gives a <span data-cyan>5%</span> chance to duplicate potions and <span data-cyan>10%</span> extra exp when mixing potions adjacent to a portable well. Duplication effect does not work with combination potions" />
       {well && <SimpleOption label="Brooch of the Gods" option="broochOfTheGods" icon={broochOfTheGodsIcon} help="Increases the portable well potion duplication chance from <span data-cyan>5%</span> to <span data-cyan>10%</span> when worn" />}
       <SimpleOption label="Desert Amulet" option="desertAmulet" icon={desertAmuletIcon} help="Gives a <span data-cyan>20%</span> chance to make a 4-dose instead of a 3-dose when mixing a <span data-sepia>Super Antifire (3)</span> potion when worn in the desert" />
       <SimpleOption label="Scroll of Cleansing" option="scrollOfCleansing" icon={scrollOfCleansingIcon} help="Gives a <span data-cyan>10%</span> chance to save secondary ingredients"  />
       <SimpleOption label="Morytania Legs" option="morytaniaLegs" icon={morytaniaLegsIcon} help="Gives a <span data-cyan>20%</span> chance to make a 4-dose instead of a 3-dose when mixing a <span data-sepia>Prayer Renewal (3)</span> potion when worn in Morytania" />
       <SimpleOption label="Envenomed" option="envenomed" icon={envenomedIcon} help="Gives a <span data-cyan>20%</span> chance to make a 4-dose instead of a 3-dose when mixing <span data-sepia>Antipoison (3)</span>, <span data-sepia>Super Antipoison (3)</span>, <span data-sepia>Antipoison+ (3)</span>, <span data-sepia>Antipoison++ (3)</span>, <span data-sepia>Weapon Poison+ (3)</span>, <span data-sepia>Weapon Poison++ (3)</span>, and/or <span data-sepia>Weapon Poison+++ (3)</span> potions" />
       <SimpleOption label="Factory Outfit" option="factoryOutfit" icon={factoryOutfitIcon} help="Gives a <span data-cyan>12.5%</span> chance to make a 4-dose instead of a 3-dose when mixing any potion when three or more pieces are worn" />
+      <SimpleOption label="Meilyr Hour" option="meilyrHour" icon={meilyrClanIcon} help="Gives <span data-cyan>20%</span> extra exp when making combination potions in the Meilyr District when the Meilyr Voice of Seren is active" />
+      <SimpleOption label="Perfect juju herblore potion" option="perfectJujuHerblorePotion" icon={perfectJujuHerblorePotionIcon} help="Gives <span data-cyan>5%</span> extra exp when making combination potions" />
       <label className={`${styles.label} ${styles.center}`}>
+        <img src={torstolIncenseSticksIcon} />
+        Torstol incense sticks
+        <InfoTooltip html="Gives <span data-cyan>0.5%</span> extra exp per stack. Stacks multiplicatively with Meilyr hour" />
+      </label>
+      <Select
+        isSearchable={false}
+        value={{label: `${torstolIncense}`}}
+        options={[
+          {value: 0, label: '0'},
+          {value: 1, label: '1'},
+          {value: 2, label: '2'},
+          {value: 3, label: '3'},
+          {value: 4, label: '4'},
+        ]}
+        onChange={(e: any) => setOption('torstolIncense', e.value)}
+      />
+      <label className={`${styles.label} ${styles.center}`}>
+        <img src={botanistTopIcon} />
+        Botanist's Outfit
+        <InfoTooltip html="Gives <span data-cyan>1%</span> extra exp per piece worn with an additional <span data-cyan>1%</span> if the whole set is worn. This option will not be able to go lower than 1 if the modified botanist's mask option is checked" />
+      </label>
+      <Select
+        isSearchable={false}
+        value={{label: `${botanistsOutfit}`}}
+        isOptionDisabled={(o: any) => o.disabled}
+        options={[
+          {value: 0, label: '0', disabled: modifiedBotanistMask},
+          {value: 1, label: '1'},
+          {value: 2, label: '2'},
+          {value: 3, label: '3'},
+          {value: 4, label: '4'},
+          {value: 5, label: '5'},
+        ]}
+        onChange={(e: any) => setOption('botanistsOutfit', e.value)}
+      />
+      <label className={`${styles.label} ${styles.center}`}>
+        <img src={umGrimIcon} />
         Underworld Grimoire
         <InfoTooltip html={`<span style="white-space: pre-wrap">1 - Gives a <span data-cyan>10%</span> chance to make a 4-dose instead of a 3-dose when mixing a <span data-sepia>Necromancy potion (3)</span> when worn in the City of Um
 
@@ -157,7 +216,7 @@ export const PlannedPotionsSetup = () => {
       </label>
       <Select
         isSearchable={false}
-        value={{label: `${underworldGrimoire ?? 0}`}}
+        value={{label: `${underworldGrimoire}`}}
         options={[
           {value: 0, label: '0'},
           {value: 1, label: '1'},
@@ -166,6 +225,16 @@ export const PlannedPotionsSetup = () => {
           {value: 4, label: '4'},
         ]}
         onChange={(e: any) => setOption('underworldGrimoire', e.value)}
+      />
+      <label className={`${styles.label} ${styles.center}`}>
+        <img src={wiseIcon} />
+        Other exp boost percentage
+      </label>
+      <TextField
+        value={arbitraryXp}
+        onChange={e => setOption('arbitraryXp', +e.currentTarget.value)}
+        type="number"
+        min={0}
       />
 
       <Heading>Potions & Recipes</Heading>
@@ -194,6 +263,12 @@ export const PlannedPotionsSetup = () => {
       </>}
       <label className={styles.label}>Subtract potions from inventory <InfoTooltip html="Subtract potions you have in your bank from the list needed to make the number of desired doses of the target potion" /></label>
       <Checkbox checked={useInventory} onChange={e => setOption('useInventory', e.currentTarget.checked)} />
+      {+!!morytaniaLegs + botanistsOutfit + (factoryOutfit ? 3 : 0) > 5 && (
+        <p className={styles.armourWarning}>
+          Your selected bonuses are using more armour slots than are available. XP only armour bonuses will be sacrificed when in favour of extra potion/doses bonuses when applicable.{' '}
+          <InfoTooltip html={'Eg. When making potions that benefit from the factory outfit\'s extra dose chance, three pieces of botanist\'s outfit will be removed (modified botanist\'s mask will never be removed)'} />
+        </p>
+      )}
       <div style={{gridColumn: 'span 2', textAlign: 'center'}}>
         <Button
           onClick={calculateInputs}

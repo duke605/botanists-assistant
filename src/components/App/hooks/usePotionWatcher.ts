@@ -71,8 +71,8 @@ export const usePotionWatcher = () => {
   const timestamps = useRef({lastSuccess: Date.now(), lastNotified: 0});
   const processLine = useCallback(async (lineOrError: ChatLine | Error) => {
     try {
-      check(lineOrError, 'chatbox_not_found', 'Chat box could not be found', 4000, 15000, chatbox.current);
-      check(lineOrError, 'timestamps_not_found', 'Chat timestamps were not detected', 4000, 15000, timestamps.current);
+      check(lineOrError, 'chatbox_not_found', 'Chat box could not be found', 4000, 45000, chatbox.current);
+      check(lineOrError, 'timestamps_not_found', 'Chat timestamps were not detected', 4000, 45000, timestamps.current);
       if (lineOrError instanceof Error) throw lineOrError;
     } catch {
       return;

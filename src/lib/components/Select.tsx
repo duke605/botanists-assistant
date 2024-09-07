@@ -26,7 +26,7 @@ const styles: StylesConfig = {
     minHeight: 0,
     flexWrap: 'nowrap'
   }),
-  option: (styles, { isFocused }) => {
+  option: (styles, { isFocused, isDisabled }) => {
     // const color = chroma(data.color);
     return {
       ...styles,
@@ -36,6 +36,7 @@ const styles: StylesConfig = {
       alignItems: 'center',
       gap: '5px',
       padding: '3px',
+      color: isDisabled ? '#828282' : styles.color,
     };
   },
   input: (styles) => ({

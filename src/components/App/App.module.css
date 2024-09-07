@@ -62,14 +62,6 @@
   font-size: 12px;
 }
 
-.toast {
-  border: 5px solid;
-  border-image: url(../../../../../../assets/toastBorder.png) 5 round;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 7px 10px;
-  max-width: 80vw;
-  color: #ebe0bc;
+.tooltip[id="tooltip"] span[data-green] {
+  color: #00ff00;
 }

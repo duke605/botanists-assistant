@@ -1,6 +1,8 @@
 import itemImages from 'virtual:item-images';
 import herbloreData from '@data/herbloreItems.json';
 
+const INVENTORY_SIZE = 28;
+
 type PageId = number;
 type ItemId = number;
 type RecipeName = string;
@@ -36,6 +38,11 @@ interface CalculationOptions {
   scrollOfCleansing?: boolean;
   morytaniaLegs?: boolean;
   recipePaths?: Record<PageId, RecipeName>;
+  botanistsOutfit?: number;
+  meilyrHour?: boolean;
+  torstolIncense?: number;
+  perfectJujuHerblorePotion?: boolean;
+  arbitraryXp?: number;
 }
 
 interface CalculateInputOptionsWithInventory extends CalculationOptions {
@@ -46,6 +53,7 @@ interface CalculateInputsContext {
   inputs: Record<ItemId, number>;
   exp: number;
   ticks: number;
+  inventories: number;
 }
 
 class Inventory {
@@ -126,6 +134,10 @@ export class Page {
     return this._image ??= this.recipes[0]?.output?.item?.imageUrl ?? this.items[0].imageUrl;
   }
 
+  isCombinationPotion = () => {
+    return this.categories.has('Category:Combination potions');
+  }
+
   isPotion = () => {
     return this.id !== 10523 // vial of water
       && this.categories.has('Category:Potions');
@@ -145,7 +157,7 @@ export class Page {
 
     const inputs: Record<ItemId, Quantity> = {};
     const inventory = new Inventory(options?.inventory ?? {});
-    const context = {inputs, exp: 0, ticks: 0};
+    const context = {inputs, exp: 0, ticks: 0, inventories: 0};
 
     // Setting the target potion's quantity/dose to 0 since that's what we want to make
     // on top of the potions we already have banked
@@ -210,6 +222,10 @@ export class Item {
     return !!this.flask;
   }
 
+  isCombinationPotion () {
+    return this.page.isCombinationPotion();
+  }
+
   isPotion = () => {
     return this.page.isPotion();
   }
@@ -270,9 +286,11 @@ export class Output {
       quantity += 1 / this.item.doses! * extraDoseChance;
     }
 
-    if (options?.well) quantity += 0.05;
-    if (options?.well && options?.broochOfTheGods) quantity += 0.05;
     if (options?.modifiedBotanistMask) quantity += 0.05;
+    if (!this.item.isCombinationPotion()) {
+      if (options?.well) quantity += 0.05;
+      if (options?.broochOfTheGods && options.well) quantity += 0.05;
+    }
 
     return quantity;
   }
@@ -289,6 +307,7 @@ export class Recipe {
   public readonly inputs: Input[];
   public readonly output: Output;
   public readonly secondaries: Input[];
+  private _slotsUsed: number | undefined;
 
   constructor(
     public readonly name: string,
@@ -303,6 +322,80 @@ export class Recipe {
     this.inputs = inputs.map(i => new Input(i.itemId, i.quantity, !!i.isSecondary, this));
     this.output = new Output(outputItemId, outputQuantity, this);
     this.secondaries = this.inputs.filter(i => i.isSecondary);
+  }
+
+  /**
+   * The number of slots used by the inputs for one mixing/crafting operation of the recipe
+   */
+  get slotsUsed() {
+    return this._slotsUsed ??= this.inputs.reduce((a, i) => a + (i.item.stackable ? 1 : i.quantity), 0);
+  }
+
+  /**
+   * The number of mixing/crafting operations that can be done before needing to bank
+   */
+  get operationsPerInventory() {
+    return Math.floor(INVENTORY_SIZE / this.slotsUsed); 
+  }
+
+  /**
+   * Calculates the total ticks required to complete the provided number of mixing/crafting
+   * operations for this recipe
+   */
+  calculateTicksForOperations = (n: number, options?: {scrollOfCleansing?: boolean}) => {
+    const SOC_SPEED_UP_CHANCE = 0.1;
+    const SOC_SPEED_UP_TICK_REDUCTION = 1;
+    const SOC_SPEED_UP_AVG_TICK_REDUCTION = SOC_SPEED_UP_CHANCE * SOC_SPEED_UP_TICK_REDUCTION;
+
+    const firstMixOfInventoryOperations = Math.ceil(n / this.operationsPerInventory);
+    const contiguousMixOperations = n - firstMixOfInventoryOperations;
+    const firstMixTicks = this.ticks[0] ?? 0;
+    const contiguousMixTicks = !options?.scrollOfCleansing
+      ? firstMixTicks
+      : Math.max(0, firstMixTicks - SOC_SPEED_UP_AVG_TICK_REDUCTION);
+
+    return firstMixOfInventoryOperations * firstMixTicks + contiguousMixOperations * contiguousMixTicks;
+  }
+
+  /**
+   * Calculates the exp rewarded per craft of this recipe with the provided
+   * buffs taken into account
+   */
+  calculateExp = (options?: CalculationOptions) => {
+    const ARMOUR_SLOTS = 5;
+
+    const morytaniaLegs = !!options?.morytaniaLegs;
+    const well = !!options?.well;
+    const meilyrHour = !!options?.meilyrHour;
+    const perfectJujuHerblorePotion = !!options?.perfectJujuHerblorePotion;
+    const arbitraryXp = options?.arbitraryXp ?? 0;
+    const factoryOutfit = options?.factoryOutfit ?? 0;
+    const torstolIncense = options?.torstolIncense ?? 0;
+    let botanistsOutfit = options?.botanistsOutfit ?? 0;
+    
+    let armourSlotsUsed = 0;
+    if (morytaniaLegs && this.output.item.name.includes('Prayer renewal')) armourSlotsUsed++;
+    if (botanistsOutfit) armourSlotsUsed += botanistsOutfit;
+    if (factoryOutfit && this.output.canProduceExtraDose()) armourSlotsUsed += 3;
+
+    // If the number of items equipped is more than the number of armour slots we have
+    // we sacrifice exp bonuses in favour of extra doses
+    if (armourSlotsUsed > ARMOUR_SLOTS) {
+      botanistsOutfit -= armourSlotsUsed - ARMOUR_SLOTS;
+    }
+
+    let exp = this.exp;
+    if (arbitraryXp) exp += this.exp * (arbitraryXp/100);
+    if (well) exp += this.exp * 0.1;
+    if (botanistsOutfit > 0) exp += this.exp * (botanistsOutfit === 5 ? 0.06 : botanistsOutfit/100);
+    if (this.output.item.isCombinationPotion()) {
+      if (perfectJujuHerblorePotion) exp += this.exp * 0.05;
+      if (meilyrHour && torstolIncense) exp += this.exp * 0.2 * (1 + torstolIncense * 0.005);
+      else if (meilyrHour) exp += this.exp * 0.2;
+      else if (torstolIncense) exp += this.exp * torstolIncense * 0.005;
+    }
+
+    return exp;
   }
 
   calculateInputs = (quantityNeeded: number, context: CalculateInputsContext, options?: CalculationOptions & {inventory?: Inventory}, itemNeeded = this.output.item) => {
@@ -321,8 +414,9 @@ export class Recipe {
     const outputQuantity = this.output.calculateQuantity(options);
     const operationsNeeded = Math.ceil(quantityNeeded / outputQuantity);
     
-    context.exp += this.exp * operationsNeeded;
-    context.ticks += (this.ticks?.slice(-1)[0] ?? 0) * operationsNeeded;
+    context.exp += this.calculateExp(options) * operationsNeeded;
+    context.ticks += this.calculateTicksForOperations(operationsNeeded, options);
+    context.inventories += Math.ceil(operationsNeeded / this.operationsPerInventory);
     context.inputs[itemNeeded.id] ??= 0;
     context.inputs[itemNeeded.id] += Math.ceil(quantityNeeded);
     
