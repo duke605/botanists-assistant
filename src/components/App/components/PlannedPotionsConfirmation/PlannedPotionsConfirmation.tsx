@@ -32,12 +32,13 @@ export const PlannedPotionsConfirmation = () => {
   if (!inputs?.length) return <Navigate to=".." relative="path" />;
 
   const time = useMemo(() => {
-    const ms = ticks * 600 / 1000;
-    const hours = Math.round(ms / (60 * 60));
-    const minutes = Math.round((ms - hours * 60 * 60) / 60);
-    const seconds = Math.round(ms - (minutes * 60 + hours * 60 * 60));
+    const withRem = (n1: number) => [Math.floor(n1).toString().padStart(2, '0'), n1 - Math.floor(n1)] as const;
+    const s = ticks * 600 / 1000;
+    const [ hours, hoursRem ] = withRem(s / (60 * 60));
+    const [ minutes, minutesRem ] = withRem(hoursRem * 60);
+    const [ seconds ] = withRem(minutesRem * 60);
 
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    return `${hours}:${minutes}:${seconds}`;
   }, [ticks]);
 
   const potions = useMemo(() => {
