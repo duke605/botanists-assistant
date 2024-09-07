@@ -43,7 +43,8 @@ export const readTitle = async () => {
   let image: ImageData | undefined;
   while (!image) {
     if (!pos) {
-      image = (await find())[1].read(pos!.x + PRODUCT_START_X, pos!.y + PRODUCT_START_Y, 200, 14);
+      const [ pos, modalImage ] = await find();
+      image = modalImage.read(pos!.x + PRODUCT_START_X, pos!.y + PRODUCT_START_Y, 200, 14);
     } else {
       const tmpImage = captureHold(pos.x, pos.y, 200, 14);
       const [ found ] = await ensureProgressDialog(tmpImage);

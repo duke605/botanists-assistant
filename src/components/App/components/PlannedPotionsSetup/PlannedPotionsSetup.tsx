@@ -265,7 +265,7 @@ export const PlannedPotionsSetup = () => {
       <Checkbox checked={useInventory} onChange={e => setOption('useInventory', e.currentTarget.checked)} />
       {+!!morytaniaLegs + botanistsOutfit + (factoryOutfit ? 3 : 0) > 5 && (
         <p className={styles.armourWarning}>
-          Your selected bonuses are using more armour slots than are available. XP only armour bonuses will be sacrificed when in favour of extra potion/doses bonuses when applicable.{' '}
+          Your selected bonuses are using more armour slots than are available. XP only armour bonuses will be sacrificed in favour of extra potion/dose bonuses when applicable.{' '}
           <InfoTooltip html={'Eg. When making potions that benefit from the factory outfit\'s extra dose chance, three pieces of botanist\'s outfit will be removed (modified botanist\'s mask will never be removed)'} />
         </p>
       )}

@@ -99,11 +99,11 @@ export const PlannedPotionsConfirmation = () => {
   return <>
     <Heading>Potions</Heading>
     <div className={styles.meta}>
-      <span className={styles.metaItem} data-tooltip-content="Experience" data-tooltip-id="tooltip">
+      <span className={styles.metaItem} data-tooltip-content="Estimated experience" data-tooltip-id="tooltip">
         <img src={herbloreImage} />
         {(Math.round(exp * 100) / 100).toLocaleString()}
       </span>
-      <span className={styles.metaItem} data-tooltip-content="Est. Time" data-tooltip-id="tooltip">
+      <span className={styles.metaItem} data-tooltip-content="Estimated time" data-tooltip-id="tooltip">
         <img src={timerImage} />
         {time}
       </span>

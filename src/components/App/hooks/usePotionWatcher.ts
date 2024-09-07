@@ -1,4 +1,5 @@
 import chatReader from '@lib/chatReader';
+import { itemsByName } from '@lib/potions';
 import { readTitle } from '@lib/progressDialogReader';
 import { usePlannedPotions } from '@state';
 import { ChatLine } from 'alt1/chatbox';
@@ -80,26 +81,35 @@ export const usePotionWatcher = () => {
 
     const ambiguousMixing = lineOrError.text.match(ambiguousMixingRegex);
     if (ambiguousMixing) {
-      // Not using tesseract to read the potion being made from the progress box
-      // if we just read if a second ago
-      if (Date.now() - lastDetect.current < 1000) {
-        lastDetect.current = Date.now();
-      }
-      
-      // Using tesseract to read the potion from the progress dialog
-      else {
+      // Using tesseract to read the potion from the progress dialog if we haven't
+      // made a potion in the last 2 seconds
+      if (Date.now() - lastDetect.current < 2000) {
         const result = await readTitle().catch(e => {
-          console.error(e);
+          let logError = true;
+          if (e instanceof Error && e.message === 'progress_dialog_not_found') {
+            toast.error('Potion name could not be detected cause the mixing progress window could not be found.', {icon: false, autoClose: 5000});
+            logError = false;
+          }
+
+          logError && console.log(e)
           return {data: {confidence: -1}} as any as RecognizeResult;
         });
-        if (result.data.confidence < 90) {
-          result.data.confidence !== -1 && console.warn(`Confidence of progress dialog title was ${result.data.confidence}`);
+        if (result.data.confidence === -1) return;
+
+        // Checking if the potion name is at least found in the list of potions
+        const text = result.data.text.trim();
+        const potion = itemsByName.get(text.toLowerCase());
+
+        if (!potion) {
+          toast.error('Detected potion name could not be found in known item names.', {icon: false, autoClose: 5000});
+          console.log('Detected name', text);
           return;
         }
 
         activePotion.current = result.data.text.trim();
       }
       
+      lastDetect.current = Date.now();
       decrementPotionProxy(activePotion.current);
       return;
     }

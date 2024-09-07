@@ -3,6 +3,7 @@ html body .toast {
   border-image: url(../../../../assets/toastBorder.png) 5 round;
   background: rgba(0, 0, 0, 0.8);
   padding: 0;
+  width: auto;
 
   --toastify-text-color-light: #ebe0bc;
   --toastify-text-color-dark: #121212;
@@ -12,6 +13,11 @@ html body .toast {
   --toastify-text-color-error: #f00;
 
   --toastify-toast-min-height: 0;
+}
+
+:global(.Toastify__toast-container) {
+  display: flex;
+  justify-content: center;
 }
 
 .toast:global(.Toastify__toast--error) {
@@ -24,6 +30,7 @@ html body .toast {
 
 .toast :global(.Toastify__toast-body) {
   padding: 7px 10px;
+  margin: -4px;
   text-align: center;
 }
 

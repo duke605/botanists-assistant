@@ -3,8 +3,8 @@ import { createMemoryRouter, RouterProvider, Outlet, useLocation } from 'react-r
 import { BankedItems, PlannedPotions, PlannedPotionsConfirmation, PlannedPotionsSetup, Toasts } from './components';
 import { usePotionWatcher } from './hooks';
 import { Tooltip } from 'react-tooltip';
-import styles from './App.module.css';
 import { useEffect } from 'react';
+import styles from './App.module.css';
 
 const router = createMemoryRouter([
   {
