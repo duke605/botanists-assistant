@@ -9,7 +9,7 @@ dayjs.extend(advancedFormat);
 export const Changelog = () => {
   return (
     <div className={styles.root}>
-      {changelog.map(log => <div>
+      {changelog.map(log => <div key={log.date.unix()}>
          <Heading>{log.date.format('MMMM Do[,] YYYY')}</Heading>
          <ul className={styles.changes}>
             {log.changes.map(change => <li key={change} className={styles.change}>{change}</li>)}
