@@ -12,14 +12,17 @@ declare module '*?alt1font' {
   export default src;
 }
 
-declare module 'virtual:potions' {
-  const src: {name: string, image: string}[];
-  export default src;
-}
-
 declare module 'virtual:item-images' {
   const src: {[id: number]: string};
   export default src;
+}
+
+declare module 'virtual:changelog' {
+  import { Dayjs } from 'dayjs';
+  export default [] as {
+    date: Dayjs;
+    changes: string[];
+  }[];
 }
 
 interface Iterator<T> {

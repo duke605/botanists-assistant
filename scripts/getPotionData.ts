@@ -242,6 +242,7 @@ const isValidPotion = (client: Mwn, page: Page) => {
   if (page.title === 'Blessed flask') return false;
   if (page.title === 'Coconut milk') return false;
   if (page.title === 'Antidote') return false;
+  if (page.title.match(/\(\d\) \(unf\)$/)) return false;
   if (!page.categories?.some(c => c.title === 'Category:Items')) return false; 
   if (page.categories?.some(c =>
     c.title === 'Category:Quest items' ||
@@ -372,6 +373,10 @@ const isValidPotion = (client: Mwn, page: Page) => {
     deferredInputs.push(() => {
       const infoboxRecipes = templates.filter(t => (t.name as string).toLowerCase?.() === 'infobox recipe');
       for (const recipe of infoboxRecipes) {
+
+        // Ignoring unfinished potions
+        if (recipe.getParam('facility')) continue;
+
         for (let i = 1; recipe.getValue(`mat${i}`); i++) {
           const matName = `mat${i}`;
           const matValue = recipe.getValue(matName)!;
@@ -450,6 +455,8 @@ const isValidPotion = (client: Mwn, page: Page) => {
 
   for (const fn of deferredRecipes) await fn();
 
-  delete (db as any)['idLookup'];
-  fs.writeFileSync('src/data/herbloreItems.json', JSON.stringify(db, null, '  '));
+  fs.writeFileSync('src/data/herbloreItems.json', JSON.stringify({
+    items: Object.values(db.items),
+    pages: Object.values(db.pages),
+  }, null, '  '));
 })();

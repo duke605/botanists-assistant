@@ -1,0 +1,11 @@
+.root {
+  display: flex;
+  gap: 32px;
+  flex-direction: column;
+}
+
+.changes {
+  padding: 0 10px;
+  list-style: inside;
+  list-style-image: url(../../../../assets/bullet.webp);
+}

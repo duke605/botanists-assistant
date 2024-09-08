@@ -13,12 +13,12 @@ export default (): Plugin => {
       if (id !== `\0${pluginId}`) return;
 
       return `
-        ${Object.values(data.items).map(item => `
+        ${data.items.map(item => `
           import image${item.id} from "@assets/potions/${item.image.split('/').slice(-1)[0]}?url";
         `.trim()).join('\n')}
 
         export default {
-          ${Object.values(data.items).map(item => `
+          ${data.items.map(item => `
             '${item.id}': image${item.id},
           `.trim()).join('\n')}
         }

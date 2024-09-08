@@ -9,7 +9,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "potions:fetch": "npx tsx scripts/getPotionData.ts",
-    "potions:images": "npx tsx scripts/downloadItemImages.ts"
+    "potions:fetch:images": "npx tsx scripts/downloadItemImages.ts"
   },
   "dependencies": {
     "alt1": "^0.0.7",
@@ -28,6 +28,7 @@
     "zustand": "^4.5.5"
   },
   "devDependencies": {
+    "@types/cli-progress": "^3.11.6",
     "@types/ejs": "^3.1.5",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^22.4.0",
@@ -37,6 +38,7 @@
     "@typescript-eslint/eslint-plugin": "^7.15.0",
     "@typescript-eslint/parser": "^7.15.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "cli-progress": "^3.12.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.2",
     "eslint-plugin-react-refresh": "^0.4.7",
@@ -45,6 +47,7 @@
     "pngjs": "^7.0.0",
     "tsx": "^4.17.0",
     "typescript": "^5.2.2",
-    "vite": "^5.3.4"
+    "vite": "^5.3.4",
+    "yaml": "^2.5.1"
   }
 }

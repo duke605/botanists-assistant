@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'node:fs';
 import { ImageDetect } from 'alt1';
 import virtualItemImages from './plugins/virtualItemImages';
+import virtualChangelog from './plugins/virtualChangelog';
 
 const alt1ImageLoader: Plugin = {
   name: "alt1-image-loader",
@@ -46,7 +47,7 @@ const alt1ImageLoader: Plugin = {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [alt1ImageLoader, virtualItemImages(), react()],
+  plugins: [alt1ImageLoader, virtualItemImages(), virtualChangelog(), react()],
   base: '/botanists-assistant',
   build: {
     assetsInlineLimit: (filepath) => {

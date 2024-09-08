@@ -464,7 +464,7 @@ const calcExtraDoseChance = (currentChance: number, ...chances: number[]) => {
   return currentChance;
 }
 
-export const items = Object.values(herbloreData.items).map(i => new Item(
+export const items = herbloreData.items.map(i => new Item(
   i.id,
   i.name,
   i.update,
@@ -486,7 +486,7 @@ export const items = Object.values(herbloreData.items).map(i => new Item(
   (i as any).flask,
 ));
 
-export const pages = Object.values(herbloreData.pages).map(p => new Page(
+export const pages = herbloreData.pages.map(p => new Page(
   p.id,
   p.name,
   p.content,

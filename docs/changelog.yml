@@ -1,0 +1,18 @@
+2024-09-08:
+  - Added changelog
+  - Updated item images
+  - Updated item image download script to show progress bar
+  - Removed unfinished potions (Granny Rowan) from list of target potions
+  - Removed IDs/keys from herblore data
+  - Added error toast for when a potion's name could not be detected from the progress dialog when making complex potions
+2024-09-07:
+  - Fixed mixing time estimate on potion confirmation page
+  - Made page scroll to top on navigation
+  - Added exp bonuses to potion planner
+  - Improved potion detection for complex potions
+  - Added error toast for when chat box timestamps aren't detected
+  - Updated styles of toasts
+2024-09-06:
+  - Added estimated experience to the confirmation page
+  - Added estimated time to the confirmation page
+  - Added error toast for when the chat box couldn't be read

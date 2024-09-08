@@ -4,3 +4,4 @@ export * from './PlannedPotionsSetup';
 export * from './PlannedPotionsConfirmation';
 export * from './BankedItems';
 export * from './Toasts';
+export * from './Changelog';
