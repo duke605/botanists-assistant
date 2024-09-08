@@ -7,24 +7,27 @@ import { useMemo } from 'react';
 
 export interface PlannedPotionsState {
   potions: Map<number, {page: Page, doq: number}>;
+  startingPotions: {page: Page, doq: number}[];
   rawPotions: Map<number, {item: Item, qty: number}>;
   madePotions: Map<number, {page: Page, doq: number}>;
-  settings: {recipePaths: {[pageId: number]: string}},
-  aggregateByPage: boolean,
+  settings: {recipePaths: {[pageId: number]: string}};
+  aggregateByPage: boolean;
 }
 
 export interface PlannedPotionsJsonState {
   potions: {[pageId: number]: number};
+  startingPotions: {[pageId: number]: number};
   rawPotions: {[itemId: number]: number};
   madePotions: {[pageId: number]: number};
-  settings: {recipePaths: {[pageId: number]: string}},
-  aggregateByPage: boolean,
+  settings: {recipePaths: {[pageId: number]: string}};
+  aggregateByPage: boolean;
 }
 
 export const usePlannedPotions = create(persist(combine({
   potions: new Map(),
   rawPotions: new Map(),
   madePotions: new Map(),
+  startingPotions: [],
   settings: {recipePaths: {}},
   aggregateByPage: true,
   resolvedPotions: [],
@@ -58,7 +61,7 @@ export const usePlannedPotions = create(persist(combine({
         ? potions.delete(item.pageId)
         : potions.set(item.pageId, potion);
     }
-    
+
     set({potions, madePotions});
   },
   clearPotions: () => {
@@ -75,6 +78,7 @@ export const usePlannedPotions = create(persist(combine({
     
     set({
       potions: potionDoqs,
+      startingPotions: potionDoqs.values().toArray(),
       rawPotions: potions,
       settings,
       madePotions: new Map(),
@@ -89,7 +93,7 @@ export const usePlannedPotions = create(persist(combine({
   }
 })), createCustomJSONStorage({
   name: 'planned-potions',
-  version: 1,
+  version: 2,
   transform: (storageValue: StorageValue<PlannedPotionsJsonState>): any => {
     return <StorageValue<PlannedPotionsState>> {
       ...storageValue,
@@ -113,6 +117,12 @@ export const usePlannedPotions = create(persist(combine({
 
           return acc.set(item.id, {item, qty: entry[1]});
         }, new Map as PlannedPotionsState['rawPotions']),
+        startingPotions: Object.entries(storageValue.state.startingPotions).reduce((acc, entry) => {
+          const page = pagesById.get(+entry[0]);
+          if (!page) return acc;
+
+          return acc.push({page, doq: entry[1]}), acc;
+        }, [] as PlannedPotionsState['startingPotions']),
       },
     }
   },
@@ -133,10 +143,41 @@ export const usePlannedPotions = create(persist(combine({
           acc[potion.page.id] = potion.doq;
           return acc;
         }, {}),
+        startingPotions: value.state.startingPotions.values().reduce((acc, potion) => {
+          acc[potion.page.id] = potion.doq;
+          return acc;
+        }, {}),
       },
     };
   },
+  migrate: (value) => {
+    const version = value.version ?? 0;
+
+    if (version < 2) {      
+      const currentTypedState = value as StorageValue<PlannedPotionsJsonState>;
+      currentTypedState.state.startingPotions = Object.entries(currentTypedState.state.potions).reduce((acc, [ pageId ]) => {
+        acc[pageId] += currentTypedState.state.madePotions[pageId] ?? 0;
+        return acc;
+      }, {...currentTypedState.state.potions});
+    }
+
+    return value as any;
+  },
 })));
+
+const calculateProgress = (
+  startingPotions: PlannedPotionsState['startingPotions'],
+  madePotions: PlannedPotionsState['madePotions'],
+) => {
+  let progress = 0;
+
+  for (const { page, doq } of startingPotions) {
+    const doqMade = madePotions.get(page.id)?.doq ?? 0;
+    progress += Math.min(1, doqMade / doq);
+  }
+
+  return progress / startingPotions.length;
+}
 
 /**
  * Returns the planned potions resolved into their pages. If results are aggregated
@@ -174,4 +215,19 @@ export const useAggregatedPlannedPotions = () => {
       return potions;
     }, [] as {item: Item, qty: number}[]);
   }, [rawPotions, potions, madePotions, aggregateByPage]);
+}
+
+/**
+ * Returns the progress of the planned potions as well as the time estimate to complete them
+ */
+export const usePlannedPotionsProgress = () => {
+  const [ madePotions, startingPotions ] = usePlannedPotions(
+    useShallow(s => [s.madePotions, s.startingPotions]),
+  );
+
+  const progress = useMemo(() => {
+    return calculateProgress(startingPotions, madePotions);
+  }, [madePotions, startingPotions]);
+
+  return progress;
 }

@@ -1,0 +1,42 @@
+.root {
+  box-shadow: 0 0 2px rgb(0 0 0 / 75%);
+  min-width: 31px;
+  width: 100%;
+  height: 26px;
+  padding: 3px 4px;
+  position: relative;
+  margin: 10px  auto;
+  background: url(../../assets/progress/bgStart.png) no-repeat top left,
+              url(../../assets/progress/bgEnd.png) no-repeat top right,
+              url(../../assets/progress/bgMiddle.png) repeat-x;
+}
+
+.bar {
+  height: 100%;
+  width: calc(100% * var(--value, 0));
+  transition: width 500ms linear;
+  background: url(../../assets/progress/barEnd.png) no-repeat top right,
+              url(../../assets/progress/barStart.png) no-repeat top left,
+              url(../../assets/progress/barMiddle.png) repeat-x;
+}
+
+.text {
+  position: absolute;
+  top: calc(50% - 2px);
+  left: 50%;
+  translate: -50% -50%;
+  font-size: 12px;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000,
+               1px 0px 0 #000,
+               0px 1px 0 #000,
+               -1px 1px 0 #000,
+               1px -1px 0 #000,
+               -1px -1px 0 #000,
+               0px -1px 0 #000,
+               -1px 0px 0 #000;
+}
+
+.text:empty {
+  display: none;
+}

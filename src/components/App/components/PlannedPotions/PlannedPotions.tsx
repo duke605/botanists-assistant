@@ -1,5 +1,5 @@
-import { useAggregatedPlannedPotions, usePlannedPotions } from '@state';
-import { Button, Heading, ItemListingPage, DoseModeOption } from '@lib/components';
+import { useAggregatedPlannedPotions, usePlannedPotions, usePlannedPotionsProgress } from '@state';
+import { Button, Heading, ItemListingPage, DoseModeOption, Progress, Stack } from '@lib/components';
 import { useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
 import { useMemo } from 'react';
@@ -12,6 +12,7 @@ export const PlannedPotions = () => {
     useShallow(s => [s.settings.recipePaths, s.aggregateByPage, s.clearPotions, s.setAggregateByPage]),
   );
   const rawPotions = useAggregatedPlannedPotions();
+  const progress = usePlannedPotionsProgress();
   const potions = useMemo(() => {
     return rawPotions.map((i: typeof rawPotions[number]) => ({
       name: 'page' in i ? i.page.name : i.item.name,
@@ -30,6 +31,10 @@ export const PlannedPotions = () => {
   return (
     <>
       <Heading>Planned Potions</Heading>
+      {progress < 1 && <Stack spacing="loose" direction="horizontal" alignItems="center">
+        <span style={{position: 'relative', top: '-3px'}}>Progress:</span>
+        <Progress value={progress} text={`${Math.round(progress * 1000) / 10}%`} />
+      </Stack>}
       <ItemListingPage
         items={potions}
         description="No potions are planned. Click button above to setup a potion, and quantity of that potion, you wish to make."
