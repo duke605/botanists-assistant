@@ -6,6 +6,7 @@
   - Removed IDs/keys from herblore data
   - Added error toast for when a potion's name could not be detected from the progress dialog when making complex potions
   - Added progress bar to planned potions page
+  - Fixed issue name reading of complex potions
 2024-09-07:
   - Fixed mixing time estimate on potion confirmation page
   - Made page scroll to top on navigation

@@ -59,12 +59,10 @@ class ChatReader {
     if (!this.box) return;
 
     const capture = captureHold(this.box.x, this.box.y, this.box.width, this.box.height);
-    this.reader.addedLastread
     const lines = this.reader.read(capture);
     if (!lines || lines.length <= 0) return;
 
     // Processing lines
-    let hadTimestamp = false;
     for (let i = 0; i < lines.length; i++) {
       const line = {...lines[i]};
       
@@ -77,7 +75,6 @@ class ChatReader {
       // Checking if the stamp is old
       const tsMatch = line.text.match(this.TS_REGEX);
       if (!tsMatch) continue;
-      hadTimestamp ||= true;
 
       const now = dayjs();
       const readTimestamp = +tsMatch.groups!.hour * 60 * 60 +
@@ -91,8 +88,6 @@ class ChatReader {
       
       this.sendToListeners(line);
     }
-
-    this.sendToListeners(new Error('timestamps_not_found'));
   }
 
   subscribe = (listener: typeof this.listeners[0]) => {

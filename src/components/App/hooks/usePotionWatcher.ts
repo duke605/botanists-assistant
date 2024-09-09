@@ -69,13 +69,12 @@ export const usePotionWatcher = () => {
   const lastDetect = useRef(0);
   const activePotion = useRef('');
   const chatbox = useRef({lastSuccess: Date.now(), lastNotified: 0});
-  const timestamps = useRef({lastSuccess: Date.now(), lastNotified: 0});
   const processLine = useCallback(async (lineOrError: ChatLine | Error) => {
     try {
       check(lineOrError, 'chatbox_not_found', 'Chat box could not be found', 4000, 45000, chatbox.current);
-      check(lineOrError, 'timestamps_not_found', 'Chat timestamps were not detected', 4000, 45000, timestamps.current);
       if (lineOrError instanceof Error) throw lineOrError;
-    } catch {
+    } catch (e) {
+      console.error(e);
       return;
     }
 
@@ -83,7 +82,7 @@ export const usePotionWatcher = () => {
     if (ambiguousMixing) {
       // Using tesseract to read the potion from the progress dialog if we haven't
       // made a potion in the last 2 seconds
-      if (Date.now() - lastDetect.current < 2000) {
+      if (Date.now() - lastDetect.current > 2000) {
         const result = await readTitle().catch(e => {
           let logError = true;
           if (e instanceof Error && e.message === 'progress_dialog_not_found') {
@@ -91,7 +90,7 @@ export const usePotionWatcher = () => {
             logError = false;
           }
 
-          logError && console.log(e)
+          logError && console.error(e);
           return {data: {confidence: -1}} as any as RecognizeResult;
         });
         if (result.data.confidence === -1) return;
@@ -124,7 +123,6 @@ export const usePotionWatcher = () => {
     const extraProc = lineOrError.text.match(extraPotionWellRegex) || lineOrError.text.match(extraPotionMaskRegex);
     if (extraProc) {
       if (!activePotion) return;
-      console.log(`%cAdding 1 extra ${activePotion.current}`, 'color: green');
       decrementPotionProxy(activePotion.current, 1);
     }
   }, []);
