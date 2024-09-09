@@ -42793,8 +42793,8 @@
               "quantity": 4
             },
             {
-              "itemId": false,
-              "isSecondary": true,
+              "itemId": 55326,
+              "isSecondary": false,
               "name": "Extreme necromancy (3)",
               "quantity": 4
             },
