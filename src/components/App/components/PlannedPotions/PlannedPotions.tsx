@@ -31,7 +31,7 @@ export const PlannedPotions = () => {
   return (
     <>
       <Heading>Planned Potions</Heading>
-      {progress < 1 && <Stack spacing="loose" direction="horizontal" alignItems="center">
+      {hasPotionsToMake && <Stack spacing="loose" direction="horizontal" alignItems="center">
         <span style={{position: 'relative', top: '-3px'}}>Progress:</span>
         <Progress value={progress} text={`${Math.round(progress * 1000) / 10}%`} />
       </Stack>}
