@@ -1,3 +1,6 @@
+2024-09-10:
+  - Added base input cost to potion confirmation page
+  - Added profit/loss to potion confirmation page
 2024-09-09:
   - Hid progress bar on planned potions page when there are planned potions
   - Fixed crash when targeting elder overloads on the potion planner page

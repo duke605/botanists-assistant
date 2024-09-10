@@ -1,11 +1,12 @@
-import { Button, DoseModeOption, Heading, ItemTable, ItemTableItem } from '@lib/components';
+import { Button, DoseModeOption, Heading, ItemTable, ItemTableItem, Money } from '@lib/components';
 import { Item } from '@lib/potions';
 import { Navigate, useLocation, useNavigate } from 'react-router';
-import { PlannedPotionsState, usePlannedPotions } from '@state';
+import { PlannedPotionsState, useItemPrices, usePlannedPotions } from '@state';
 import { useCallback, useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import herbloreImage from '@assets/herblore.png';
 import timerImage from '@assets/timer.png';
+import profitLossImage from '@assets/profitLoss.png';
 import styles from './PlannedPotionConfirmation.module.css';
 
 interface TableProps {
@@ -19,7 +20,9 @@ export const PlannedPotionsConfirmation = () => {
     settings,
     exp,
     ticks,
+    targetPotion,
   }: {
+    targetPotion: TableProps['inputs'][number],
     inputs: TableProps['inputs'];
     exp: number;
     settings: PlannedPotionsState['settings'];
@@ -28,6 +31,9 @@ export const PlannedPotionsConfirmation = () => {
   const navigate = useNavigate();
   const [ setPotions, setDoseMode, doseMode ] = usePlannedPotions(
     useShallow(s => [s.setPotions, s.setAggregateByPage, s.aggregateByPage]),
+  );
+  const [ itemPrices, fetchingPrices, fetchPrices, getPriceForItem ] = useItemPrices(
+    useShallow(s => [s.itemPrices, s.fetching, s.fetchPrices, s.getPriceForItem]),
   );
   if (!inputs?.length) return <Navigate to=".." relative="path" />;
 
@@ -83,6 +89,19 @@ export const PlannedPotionsConfirmation = () => {
       name: i.item.name,
     }));
   }, [inputs, settings.recipePaths]);
+  const baseInputCost = useMemo(() => {
+    let total = 0;
+
+    for (const input of inputs) {
+      if (input.item.id === targetPotion.item.id || input.item.recipes.length !== 0) continue;
+      total += (getPriceForItem(input.item) ?? 0) * input.quantity;
+    }
+
+    return total;
+  }, [inputs, targetPotion, itemPrices]);
+  const outputPrice = (getPriceForItem(targetPotion.item) ?? 0) * targetPotion.quantity;
+  const profitLoss = outputPrice - baseInputCost;
+  // const gpPerExp = 
 
   const confirm = useCallback(() => {
     // Filtering out non-potion inputs and converting potion inputs to doses (if they use doses)
@@ -106,6 +125,29 @@ export const PlannedPotionsConfirmation = () => {
       <span className={styles.metaItem} data-tooltip-content="Estimated time" data-tooltip-id="tooltip">
         <img src={timerImage} />
         {time}
+      </span>
+      <span
+        className={styles.metaItem}
+        style={{cursor: !fetchingPrices ? 'pointer' : undefined}}
+        data-tooltip-html={`Base input cost<br /><span data-muted>${fetchingPrices ? 'Loading...' : 'Click to update'}</span>`}
+        data-tooltip-id="tooltip"
+        onClick={!fetchingPrices ? fetchPrices : undefined}
+      >
+        <span className={styles.money}><Money value={baseInputCost} /></span>
+        {baseInputCost.toLocaleString()}
+      </span>
+      <span
+        className={styles.metaItem}
+        style={{cursor: !fetchingPrices ? 'pointer' : undefined}}
+        data-tooltip-html={`Profit/Loss<br /><span data-muted>${fetchingPrices ? 'Loading...' : 'Click to update'}</span>`}
+        data-tooltip-id="tooltip"
+        onClick={!fetchingPrices ? fetchPrices : undefined}
+      >
+        <img src={profitLossImage} />
+        <span
+          style={{color: profitLoss > 0 ? '#0f0' : '#f00'}}
+          children={(outputPrice - baseInputCost).toLocaleString()}
+        />
       </span>
     </div>
     <ItemTable

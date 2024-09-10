@@ -125,10 +125,12 @@ export const PlannedPotionsSetup = () => {
         return acc;
       }, {}),
     });
+    
+    const targetPotion = inputs.find(i => i.item.pageId === targetPotionPageId);
 
     const settings: PlannedPotionsState['settings'] = {recipePaths};
     navigate('/planned_potions/confirm', {
-      state: {inputs, settings, exp, ticks},
+      state: {inputs, settings, exp, ticks, targetPotion},
     });
   }, [
     potionPage,
@@ -151,6 +153,7 @@ export const PlannedPotionsSetup = () => {
     meilyrHour,
     perfectJujuHerblorePotion,
     arbitraryXp,
+    targetPotionPageId,
   ]);
   
   return (

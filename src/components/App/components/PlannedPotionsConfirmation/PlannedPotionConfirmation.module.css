@@ -42,3 +42,12 @@
   height: 32px;
   object-fit: contain;
 }
+
+.money {
+  line-height: 0;
+  font-size: 0;
+}
+
+.money img {
+  height: auto;
+}

@@ -11,3 +11,4 @@ export * from './ItemListingPage';
 export * from './DoseModeOption';
 export * from './Progress';
 export * from './Stack';
+export * from './Money';
