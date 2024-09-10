@@ -130,7 +130,7 @@ export const PlannedPotionsSetup = () => {
 
     const settings: PlannedPotionsState['settings'] = {recipePaths};
     navigate('/planned_potions/confirm', {
-      state: {inputs, settings, exp, ticks, targetPotion},
+      state: {inputs, settings, exp, ticks, targetPotion, useInventory},
     });
   }, [
     potionPage,
@@ -154,6 +154,7 @@ export const PlannedPotionsSetup = () => {
     perfectJujuHerblorePotion,
     arbitraryXp,
     targetPotionPageId,
+    useInventory,
   ]);
   
   return (

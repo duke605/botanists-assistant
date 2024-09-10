@@ -1,6 +1,8 @@
 2024-09-10:
   - Added base input cost to potion confirmation page
   - Added profit/loss to potion confirmation page
+  - Removed profit/loss and base input cost from confirmation page when "Subtract potions from inventory" is selected:
+    - If this was a feature you liked, let me know and I'll think about reworking it to include potions that have no inputs "under" them instead of just herbs, vials, and secondaries
 2024-09-09:
   - Hid progress bar on planned potions page when there are planned potions
   - Fixed crash when targeting elder overloads on the potion planner page

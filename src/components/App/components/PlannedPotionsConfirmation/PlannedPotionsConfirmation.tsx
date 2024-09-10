@@ -21,12 +21,14 @@ export const PlannedPotionsConfirmation = () => {
     exp,
     ticks,
     targetPotion,
+    useInventory,
   }: {
     targetPotion: TableProps['inputs'][number],
     inputs: TableProps['inputs'];
     exp: number;
     settings: PlannedPotionsState['settings'];
     ticks: number;
+    useInventory: boolean;
   } = useLocation().state;
   const navigate = useNavigate();
   const [ setPotions, setDoseMode, doseMode ] = usePlannedPotions(
@@ -90,6 +92,8 @@ export const PlannedPotionsConfirmation = () => {
     }));
   }, [inputs, settings.recipePaths]);
   const baseInputCost = useMemo(() => {
+    if (useInventory) return;
+
     let total = 0;
 
     for (const input of inputs) {
@@ -98,9 +102,9 @@ export const PlannedPotionsConfirmation = () => {
     }
 
     return total;
-  }, [inputs, targetPotion, itemPrices]);
-  const outputPrice = (getPriceForItem(targetPotion.item) ?? 0) * targetPotion.quantity;
-  const profitLoss = outputPrice - baseInputCost;
+  }, [inputs, targetPotion, itemPrices, useInventory]);
+  const outputPrice = useInventory ? undefined : (getPriceForItem(targetPotion.item) ?? 0) * targetPotion.quantity;
+  const profitLoss = useInventory ? undefined : outputPrice! - baseInputCost!;
   // const gpPerExp = 
 
   const confirm = useCallback(() => {
@@ -126,29 +130,31 @@ export const PlannedPotionsConfirmation = () => {
         <img src={timerImage} />
         {time}
       </span>
-      <span
-        className={styles.metaItem}
-        style={{cursor: !fetchingPrices ? 'pointer' : undefined}}
-        data-tooltip-html={`Base input cost<br /><span data-muted>${fetchingPrices ? 'Loading...' : 'Click to update'}</span>`}
-        data-tooltip-id="tooltip"
-        onClick={!fetchingPrices ? fetchPrices : undefined}
-      >
-        <span className={styles.money}><Money value={baseInputCost} /></span>
-        {baseInputCost.toLocaleString()}
-      </span>
-      <span
-        className={styles.metaItem}
-        style={{cursor: !fetchingPrices ? 'pointer' : undefined}}
-        data-tooltip-html={`Profit/Loss<br /><span data-muted>${fetchingPrices ? 'Loading...' : 'Click to update'}</span>`}
-        data-tooltip-id="tooltip"
-        onClick={!fetchingPrices ? fetchPrices : undefined}
-      >
-        <img src={profitLossImage} />
+      {!useInventory && <>
         <span
-          style={{color: profitLoss > 0 ? '#0f0' : '#f00'}}
-          children={(outputPrice - baseInputCost).toLocaleString()}
-        />
-      </span>
+          className={styles.metaItem}
+          style={{cursor: !fetchingPrices ? 'pointer' : undefined}}
+          data-tooltip-html={`Base input cost<br /><span data-muted>${fetchingPrices ? 'Loading...' : 'Click to update'}</span>`}
+          data-tooltip-id="tooltip"
+          onClick={!fetchingPrices ? fetchPrices : undefined}
+        >
+          <span className={styles.money}><Money value={baseInputCost!} /></span>
+          {baseInputCost!.toLocaleString()}
+        </span>
+        <span
+          className={styles.metaItem}
+          style={{cursor: !fetchingPrices ? 'pointer' : undefined}}
+          data-tooltip-html={`Profit/Loss<br /><span data-muted>${fetchingPrices ? 'Loading...' : 'Click to update'}</span>`}
+          data-tooltip-id="tooltip"
+          onClick={!fetchingPrices ? fetchPrices : undefined}
+        >
+          <img src={profitLossImage} />
+          <span
+            style={{color: profitLoss! > 0 ? '#0f0' : '#f00'}}
+            children={(outputPrice! - baseInputCost!).toLocaleString()}
+          />
+        </span>
+      </>}
     </div>
     <ItemTable
       showAlternateRecipes={false}

@@ -19,9 +19,11 @@ declare module 'virtual:item-images' {
 
 declare module 'virtual:changelog' {
   import { Dayjs } from 'dayjs';
+  export type Change = (string | {[change: string]: Change[]});
+
   export default [] as {
     date: Dayjs;
-    changes: string[];
+    changes: Change[];
   }[];
 }
 
