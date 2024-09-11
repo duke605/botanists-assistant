@@ -12,6 +12,7 @@ type Quantity = number;
 interface JSONInput {
   itemId: number;
   isSecondary: boolean;
+  isSavable?: boolean;
   quantity: number;
 }
 
@@ -240,6 +241,7 @@ export class Input {
     public readonly itemId: number,
     public readonly quantity: number,
     public readonly isSecondary: boolean,
+    public readonly isSavable: boolean,
     public readonly recipe: Recipe,
   ) {}
 
@@ -319,7 +321,7 @@ export class Recipe {
     public readonly page: Page,
     inputs: JSONInput[],
   ) {
-    this.inputs = inputs.map(i => new Input(i.itemId, i.quantity, !!i.isSecondary, this));
+    this.inputs = inputs.map(i => new Input(i.itemId, i.quantity, !!i.isSecondary, i.isSavable ?? true, this));
     this.output = new Output(outputItemId, outputQuantity, this);
     this.secondaries = this.inputs.filter(i => i.isSecondary);
   }
@@ -425,7 +427,7 @@ export class Recipe {
       
       // Reducing the input quantity if the input is a secondary and the scroll of cleansing
       // is being used
-      if (input.isSecondary && options?.scrollOfCleansing) {
+      if (input.isSecondary && options?.scrollOfCleansing && input.isSavable) {
         const saveChance = 0.1;
         inputQtyNeeded = Math.ceil(inputQtyNeeded * (1 - (saveChance / this.secondaries.length)));
       }

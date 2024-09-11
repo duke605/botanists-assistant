@@ -27,8 +27,11 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-wrap: wrap;
   gap: 16px;
+  margin: 0 auto;
   margin-bottom: 16px;
+  width: 90%;
 }
 
 .metaItem {
@@ -38,7 +41,19 @@
   gap: 5px;
 }
 
-.metaItem img {
+.imageContainer {
+  position: relative;
+}
+
+.secondaryImage {
+  height: 22px;
+  object-fit: contain;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.metaItem img:not(.secondaryImage) {
   height: 32px;
   object-fit: contain;
 }

@@ -1,3 +1,11 @@
+2024-09-11:
+  - Increased indents of changelog items to increase readability
+  - Increased spacing between changelog items to increase readability
+  - Added estimated experience per hour to potion confirmation page
+  - Added estimated GP per experience to potion confirmation page:
+    - Will only show if "Subtract potions from inventory" was unchecked when the potion inputs were calculated
+  - Fixed vulnerability bomb inputs:
+    - Rune inputs (At least for vulnerability bombs) are considered secondaries but will not be saved. So when scroll of cleansing procs in attempt to save the runes, you will only benefit from the increased mixing speed, not the material save chance
 2024-09-10:
   - Added base input cost to potion confirmation page
   - Added profit/loss to potion confirmation page

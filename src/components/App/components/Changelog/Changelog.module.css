@@ -2,10 +2,15 @@
   display: flex;
   gap: 32px;
   flex-direction: column;
+  margin-left: -5px;
 }
 
 .changes {
-  padding: 0 10px;
+  padding: 0 15px;
   list-style: inside;
   list-style-image: url(../../../../assets/bullet.webp);
+}
+
+.change {
+  margin: 5px 0;
 }

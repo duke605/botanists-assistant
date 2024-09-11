@@ -4,6 +4,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router';
 import { PlannedPotionsState, useItemPrices, usePlannedPotions } from '@state';
 import { useCallback, useMemo } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { useHumanTime } from '@lib/hooks';
 import herbloreImage from '@assets/herblore.png';
 import timerImage from '@assets/timer.png';
 import profitLossImage from '@assets/profitLoss.png';
@@ -39,15 +40,7 @@ export const PlannedPotionsConfirmation = () => {
   );
   if (!inputs?.length) return <Navigate to=".." relative="path" />;
 
-  const time = useMemo(() => {
-    const withRem = (n1: number) => [Math.floor(n1).toString().padStart(2, '0'), n1 - Math.floor(n1)] as const;
-    const s = ticks * 600 / 1000;
-    const [ hours, hoursRem ] = withRem(s / (60 * 60));
-    const [ minutes, minutesRem ] = withRem(hoursRem * 60);
-    const [ seconds ] = withRem(minutesRem * 60);
-
-    return `${hours}:${minutes}:${seconds}`;
-  }, [ticks]);
+  const time = useHumanTime(ticks * 600 / 1000);
 
   const potions = useMemo(() => {
     if (!doseMode) return inputs.filter(i => i.item.isPotion()).map<ItemTableItem>(i => ({
@@ -105,7 +98,8 @@ export const PlannedPotionsConfirmation = () => {
   }, [inputs, targetPotion, itemPrices, useInventory]);
   const outputPrice = useInventory ? undefined : (getPriceForItem(targetPotion.item) ?? 0) * targetPotion.quantity;
   const profitLoss = useInventory ? undefined : outputPrice! - baseInputCost!;
-  // const gpPerExp = 
+  const expPerHour = Math.round(exp / (ticks * 600 / 1000 / 60 / 60) * 100) / 100;
+  const gpPerExp = useInventory ? undefined : Math.round(profitLoss! / exp);
 
   const confirm = useCallback(() => {
     // Filtering out non-potion inputs and converting potion inputs to doses (if they use doses)
@@ -130,6 +124,13 @@ export const PlannedPotionsConfirmation = () => {
         <img src={timerImage} />
         {time}
       </span>
+      <span className={styles.metaItem} data-tooltip-content="Estimated experience per hour" data-tooltip-id="tooltip">
+        <div className={styles.imageContainer}>
+          <img src={herbloreImage} />
+          <img src={timerImage} className={styles.secondaryImage} />
+        </div>
+        {expPerHour.toLocaleString()}
+      </span>
       {!useInventory && <>
         <span
           className={styles.metaItem}
@@ -152,6 +153,22 @@ export const PlannedPotionsConfirmation = () => {
           <span
             style={{color: profitLoss! > 0 ? '#0f0' : '#f00'}}
             children={(outputPrice! - baseInputCost!).toLocaleString()}
+          />
+        </span>
+        <span
+          className={styles.metaItem}
+          style={{cursor: !fetchingPrices ? 'pointer' : undefined}}
+          data-tooltip-html={`Estimated GP per experience<br /><span data-muted>${fetchingPrices ? 'Loading...' : 'Click to update'}</span>`}
+          data-tooltip-id="tooltip"
+          onClick={!fetchingPrices ? fetchPrices : undefined}
+        >
+          <div className={styles.imageContainer}>
+            <img src={herbloreImage} />
+            <img src={profitLossImage} className={styles.secondaryImage} />
+          </div>
+          <span
+            style={{color: gpPerExp! > 0 ? '#0f0' : '#f00'}}
+            children={(gpPerExp!).toLocaleString()}
           />
         </span>
       </>}

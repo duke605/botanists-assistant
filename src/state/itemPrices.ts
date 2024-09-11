@@ -72,11 +72,9 @@ export const useItemPrices = create(persist(combine({
       const lastUpdated = response['%LAST_UPDATE%'];
 
       // Checking if there has been an update since last time. If not returning to save compute
-      console.log(lastUpdated);
       if (lastUpdated === get().lastUpdated) return get().itemPrices;
 
       const itemPrices = convertToMap(response);
-      console.log(itemPrices);
       set({lastUpdated, itemPrices});
 
       return itemPrices;

@@ -49874,12 +49874,14 @@
               "itemId": 566,
               "isSecondary": true,
               "name": "Soul rune",
+              "isSavable": false,
               "quantity": 5
             },
             {
               "itemId": 562,
               "isSecondary": true,
               "name": "Chaos rune",
+              "isSavable": false,
               "quantity": 5
             },
             {
@@ -49922,12 +49924,14 @@
               "itemId": 566,
               "isSecondary": true,
               "name": "Soul rune",
+              "isSavable": false,
               "quantity": 5
             },
             {
               "itemId": 562,
               "isSecondary": true,
               "name": "Chaos rune",
+              "isSavable": false,
               "quantity": 5
             },
             {
@@ -49970,12 +49974,14 @@
               "itemId": 566,
               "isSecondary": true,
               "name": "Soul rune",
+              "isSavable": false,
               "quantity": 3
             },
             {
               "itemId": 562,
               "isSecondary": true,
               "name": "Chaos rune",
+              "isSavable": false,
               "quantity": 3
             },
             {
