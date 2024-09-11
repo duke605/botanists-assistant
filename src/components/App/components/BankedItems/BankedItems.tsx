@@ -4,6 +4,7 @@ import { useCallback, useMemo } from 'react';
 import { captureHoldFullRs } from 'alt1';
 import { useItemFinder } from './hooks';
 import { useShallow } from 'zustand/react/shallow';
+import { toast } from 'react-toastify';
 
 export const BankedItems = () => {
   const [ rawItems, clearItems ] = useBankedItemInputs(
@@ -26,7 +27,16 @@ export const BankedItems = () => {
 
   const importItems = useCallback(async () => {
     const haystack = captureHoldFullRs();
-    await findItems(haystack);
+    try {
+      await findItems(haystack);
+    } catch (e) {
+      if (e instanceof Error) {
+        if (e.message === 'bank_ui_not_found') {
+          toast.error('Bank UI not found. Ensure your bank is open, your UI is not in legacy mode, and nothing is overlapping the bank UI.', {icon: false, autoClose: 7000});
+          return;
+        }
+      }
+    }
   }, [findItems]);
 
   return <>
