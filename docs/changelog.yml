@@ -1,3 +1,6 @@
+2024-09-12:
+  - Fixed issue that cause NaN when the "Subtract materials from inventory" settings was check when calculating inputs
+  - Changed language on potion planner page from potions to materials
 2024-09-11:
   - Increased indents of changelog items to increase readability
   - Increased spacing between changelog items to increase readability
