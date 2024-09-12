@@ -121,7 +121,7 @@ export const PlannedPotionsSetup = () => {
       perfectJujuHerblorePotion,
       torstolIncense,
       inventory: !useInventory ? {} : inventory.reduce((acc, entry) => {
-        acc[entry.item.id] = {itemId: entry.item, qty: entry.qty};
+        acc[entry.item.id] = entry.qty;
         return acc;
       }, {}),
     });
@@ -265,7 +265,7 @@ export const PlannedPotionsSetup = () => {
         <label className={styles.label}>Quantity to make<InfoTooltip html={`The number of <span data-sepia>${potionPage.name}</span> to make`} /></label>
         <TextField type="number" value={qtyToMake.toString()} onChange={e => setQtyToMake(+e.currentTarget.value)}/>
       </>}
-      <label className={styles.label}>Subtract potions from inventory <InfoTooltip html="Subtract potions you have in your bank from the list needed to make the number of desired doses of the target potion" /></label>
+      <label className={styles.label}>Subtract materials from inventory <InfoTooltip html="Subtract materials you have in your bank from the list of materials needed to make the target potion" /></label>
       <Checkbox checked={useInventory} onChange={e => setOption('useInventory', e.currentTarget.checked)} />
       {+!!morytaniaLegs + botanistsOutfit + (factoryOutfit ? 3 : 0) > 5 && (
         <p className={styles.armourWarning}>
