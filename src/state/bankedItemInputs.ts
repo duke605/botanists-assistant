@@ -21,28 +21,40 @@ export const useBankedItemInputs = create(persist(combine({
     const item = items.find(i => i.id === itemId);
     if (!item) return;
 
-    const entries = [...get().entries];
+    let entries = [...get().entries];
     const idx = entries.findIndex(e => e.item.id === item.id);
-    idx === -1
-      ? entries.push({item, qty, timeAdded: Date.now()})
-      : entries[idx] = {item, qty: entries[idx].qty + qty, timeAdded: Date.now()};
+    if (idx === -1) {
+      if (qty <= 0) return;
+      entries.push({item, qty, timeAdded: Date.now()});
+    } else {
+      const newQty = entries[idx].qty + qty;
+      newQty <= 0
+        ? entries = entries.filter((_, i) => i !== idx)
+        : entries[idx] = {item, qty: newQty, timeAdded: Date.now()};
+    }
 
     set({entries});
   },
 
   /**
-   * Sets the absolute quantity of a banked item
+   * Sets the absolute quantity of a banked item. If the quantity is <= 0 the item
+   * will be removed
    */
   setItemQuantity: (itemId: number, qty: number) => {
     const item = itemsById.get(itemId);
     if (!item) return;
 
-    const entries = [...get().entries];
+    let entries = [...get().entries];
     const idx = entries.findIndex(e => e.item.id === item.id);
     const entry = {item, qty, timeAdded: Date.now()};
-    idx === -1
-      ? entries.push(entry)
-      : entries[idx] = entry;
+    if (idx === -1) {
+      if (qty <= 0) return;
+      entries.push(entry);
+    } else {
+      qty <= 0
+        ? entries = entries.filter((_, i) => i !== idx)
+        : entries[idx] = entry
+    }
 
     set({entries});
   },

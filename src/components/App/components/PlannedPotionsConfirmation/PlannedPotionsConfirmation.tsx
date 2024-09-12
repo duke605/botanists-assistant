@@ -1,4 +1,4 @@
-import { Button, DoseModeOption, Heading, ItemTable, ItemTableItem, Money } from '@lib/components';
+import { Button, DoseModeOption, Heading, ItemTable, ItemTableItem } from '@lib/components';
 import { Item } from '@lib/potions';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { PlannedPotionsState, useItemPrices, usePlannedPotions } from '@state';

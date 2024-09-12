@@ -5,6 +5,7 @@ interface StackProps {
   children: ReactNode;
   spacing?: keyof typeof SPACINGS;
   direction?: keyof typeof DIRECTIONS,
+  fullWidth?: boolean;
   alignItems?: CSSProperties['alignItems'];
   alignContent?: CSSProperties['alignContent'];
   justifyContent?: CSSProperties['justifyContent'];
@@ -34,6 +35,7 @@ export const Stack = (props: StackProps) => {
       style={{
         '--direction': direction,
         '--spacing': spacing,
+        width: !props.fullWidth ? undefined : '100%',
         alignItems: props.alignItems,
         alignContent: props.alignContent,
         justifyItems: props.justifyItems,

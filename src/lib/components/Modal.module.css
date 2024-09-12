@@ -1,0 +1,53 @@
+.root {
+  border: 8px solid;
+  border-image: url(../../assets/thiccBorder.png) 8 repeat;
+  background: url(../../assets/background.png);
+  isolation: isolate;
+  padding: 0;
+  color: #fff;
+}
+
+.root::backdrop {
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.5) 65%);
+  animation: backdrop 200ms linear forwards;
+}
+
+.header {
+  position: relative;
+  height: 31px;
+  background: url(../../assets/modelHeader.png) repeat-x;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #ffcb05;
+  font-family: 'trajan-pro-3';
+  text-shadow: 1px 1px 2px #000;
+  text-transform: uppercase;
+  font-size: 12px;
+  margin: 0;
+}
+
+.close {
+  background: 0;
+  padding: 0;
+  font-size: 0;
+  line-height: 0;
+  margin: 0;
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  cursor: pointer;
+}
+
+.close:hover {
+  filter: brightness(1.2);
+}
+
+.body {
+  padding: 6px;
+}
+
+@keyframes backdrop {
+  from { backdrop-filter: blur(0); }
+  to { backdrop-filter: blur(3px); }
+}

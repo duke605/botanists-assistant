@@ -1,0 +1,13 @@
+.add {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  filter: drop-shadow(0 0 2px #000) brightness(1);
+  cursor: pointer;
+  outline: none;
+}
+
+.add:hover,
+.add:focus {
+  filter: drop-shadow(0 0 2px #000) brightness(1.2);
+}

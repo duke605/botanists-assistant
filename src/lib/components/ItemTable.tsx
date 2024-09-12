@@ -6,6 +6,7 @@ import { ChangeEvent, ReactNode, useCallback, useDeferredValue, useMemo, useStat
 import Fuse from 'fuse.js';
 import { Tooltip } from 'react-tooltip';
 import classNames from 'classnames';
+import quillImage from '@assets/quill.png';
 import styles from './ItemTable.module.css';
 
 interface RecipeResult {
@@ -19,13 +20,15 @@ export interface ItemTableItem {
   doq: number;
   id: number;
   image: string;
+  editable?: boolean;
   recipes?: RecipeResult[];
 }
 
-export interface ItemTableProps<T extends ItemTableItem> {
-  items: T[];
+export interface ItemTableProps {
+  items: ItemTableItem[];
   showAlternateRecipes?: boolean;
   options?: ReactNode;
+  onEdit?: (id: number) => void;
 }
 
 interface ItemTooltipProps {
@@ -64,7 +67,7 @@ const ItemTooltip = (props: ItemTooltipProps) => {
   );
 }
 
-export const ItemTable = <T extends ItemTableItem,>(props: ItemTableProps<T>) => {
+export const ItemTable = (props: ItemTableProps) => {
   const [ sortColumn, sortDirection, progressSort, setDirection ] = useSorting<'name' | 'qty'>();
   const [ search, setSearch ] = useState('');
   const [ fuzzyMatch, setFuzzyMatching ] = useState(false);
@@ -126,12 +129,15 @@ export const ItemTable = <T extends ItemTableItem,>(props: ItemTableProps<T>) =>
         {items.map(i =>
           <Fragment key={i.id}>
             <TableCell style={{lineHeight: 0, fontSize: 0, justifyContent: 'center'}}><img src={i.image} /></TableCell>
-            <TableCell>
+            <TableCell style={{display: 'flex', justifyContent: 'space-between'}}>
               {(i.recipes?.length ?? 0) >= 1 ? <>
                 <span data-tooltip-id={`itemToolip-${i.id}`} className={styles.linkLike}>{i.name}</span>
                 <ItemTooltip recipes={i.recipes!} id={`itemToolip-${i.id}`} showAlternateRecipes={props.showAlternateRecipes} />
               </> : (
                 <span>{i.name}</span>
+              )}
+              {!!i.editable && !!props.onEdit && (
+                <img src={quillImage} className={styles.edit} data-tooltip-id='tooltip' data-tooltip-content="Edit" onClick={() => props.onEdit!(i.id)} />
               )}
             </TableCell>
             <TableCell style={{justifyContent: 'end'}}>{i.doq.toLocaleString()}</TableCell>

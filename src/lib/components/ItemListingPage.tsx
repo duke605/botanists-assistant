@@ -1,14 +1,14 @@
 import { ReactNode } from 'react';
-import { ItemTable, ItemTableItem, ItemTableProps } from '.';
+import { ItemTable, ItemTableProps } from '.';
 import classNames from 'classnames';
 import styles from './ItemListingPage.module.css';
 
-interface ItemListingPageProps<T extends ItemTableItem> extends ItemTableProps<T> {
+interface ItemListingPageProps extends ItemTableProps {
   buttons: ReactNode;
   description: ReactNode;
 }
 
-export const ItemListingPage = <T extends ItemTableItem,>(props: ItemListingPageProps<T>) => {
+export const ItemListingPage = (props: ItemListingPageProps) => {
   return <>
     <div className={classNames(styles.buttonRow, {[styles.noItems]: !props.items.length})}>
       {props.buttons}
@@ -16,6 +16,7 @@ export const ItemListingPage = <T extends ItemTableItem,>(props: ItemListingPage
     {!props.items.length && <p className={styles.noItemsDesc} children={props.description} />}
     {!!props.items.length && (
       <ItemTable
+        onEdit={props.onEdit}
         items={props.items}
         showAlternateRecipes={props.showAlternateRecipes}
         options={props.options}

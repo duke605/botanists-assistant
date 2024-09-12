@@ -28,26 +28,6 @@
   filter: brightness(1.2);
 }
 
-/* .button::before {
-  width: 12px;
-  height: 100%;
-  content: "";
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  background: url(../../assets/button.png) 0px 0px / 24px 400%;
-}
-
-.button::after {
-  width: 12px;
-  height: 100%;
-  content: "";
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  background: url(../../assets/button.png) -12px 0px / 24px 400%;
-} */
-
 .button[disabled] {
   opacity: .5;
   cursor: default;

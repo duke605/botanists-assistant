@@ -12,3 +12,4 @@ export * from './DoseModeOption';
 export * from './Progress';
 export * from './Stack';
 export * from './Money';
+export * from './Modal';

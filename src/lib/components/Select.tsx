@@ -1,6 +1,6 @@
 import ReactSelect, { CSSObjectWithLabel, StylesConfig } from 'react-select';
 import selectBg from '@assets/selectMiddle.png';
-import caret from '@assets/carot.png';
+import caret from '@assets/caret.png';
 
 const common: CSSObjectWithLabel = {
   color: '#aed0e0',
