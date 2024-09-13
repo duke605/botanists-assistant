@@ -27,7 +27,7 @@ export const PlannedPotions = () => {
     }))
   }, [rawPotions, recipePaths]);
   const hasPotionsToMake = potions.length > 0;
-
+  
   return (
     <>
       <Heading>Planned Potions</Heading>

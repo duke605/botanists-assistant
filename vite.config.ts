@@ -16,7 +16,10 @@ const alt1ImageLoader: Plugin = {
     ImageDetect.clearPngColorspace(data);
     const base64 = data.toString("base64");
 
-    return `import { ImageDetect } from 'alt1';\nexport default ImageDetect.imageDataFromBase64('${base64}');`;
+    return {
+      code: `import { ImageDetect } from 'alt1';\nexport default ImageDetect.imageDataFromBase64('${base64}');`,
+      map: null,
+    };
   },
 };
 
@@ -50,6 +53,7 @@ export default defineConfig({
   plugins: [alt1ImageLoader, virtualItemImages(), virtualChangelog(), react()],
   base: '/botanists-assistant',
   build: {
+    sourcemap: true,
     assetsInlineLimit: (filepath) => {
       const file = path.parse(filepath);
       return file.name === 'appconfig' ? false : true;
