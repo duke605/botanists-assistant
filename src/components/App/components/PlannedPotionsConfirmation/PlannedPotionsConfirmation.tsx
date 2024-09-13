@@ -7,6 +7,8 @@ import { useShallow } from 'zustand/react/shallow';
 import { useHumanTime } from '@lib/hooks';
 import herbloreImage from '@assets/herblore.png';
 import timerImage from '@assets/timer.png';
+import coinsImage from '@assets/Coins_4.png';
+import coins10kImage from '@assets/Coins_10000.png';
 import profitLossImage from '@assets/profitLoss.png';
 import styles from './PlannedPotionConfirmation.module.css';
 
@@ -139,7 +141,7 @@ export const PlannedPotionsConfirmation = () => {
           data-tooltip-id="tooltip"
           onClick={!fetchingPrices ? fetchPrices : undefined}
         >
-          <span className={styles.money}><Money value={baseInputCost!} /></span>
+          <img src={coins10kImage} />
           {baseInputCost!.toLocaleString()}
         </span>
         <span
@@ -164,7 +166,7 @@ export const PlannedPotionsConfirmation = () => {
         >
           <div className={styles.imageContainer}>
             <img src={herbloreImage} />
-            <img src={profitLossImage} className={styles.secondaryImage} />
+            <img src={coinsImage} className={styles.secondaryImage} />
           </div>
           <span
             style={{color: gpPerExp! > 0 ? '#0f0' : '#f00'}}

@@ -47,6 +47,7 @@
 
 .secondaryImage {
   height: 22px;
+  max-width: 22px;
   object-fit: contain;
   position: absolute;
   bottom: 0;
