@@ -1,6 +1,6 @@
 import { TabRow } from './components/TabRow/TabRow';
 import { createMemoryRouter, RouterProvider, Outlet, useLocation } from 'react-router';
-import { BankedItems, Changelog, PlannedPotions, PlannedPotionsConfirmation, PlannedPotionsSetup, Toasts } from './components';
+import { BankedItems, Changelog, PlannedPotions, PlannedPotionsConfirmation, PlannedPotionsSetup, Toasts, ErrorBoundary } from './components';
 import { usePotionWatcher } from './hooks';
 import { Tooltip } from 'react-tooltip';
 import { useEffect } from 'react';
@@ -9,14 +9,16 @@ import styles from './App.module.css';
 const router = createMemoryRouter([
   {
     path: '/',
+    ErrorBoundary,
     Component: () => {
       const location = useLocation();
+      usePotionWatcher();
 
       useEffect(() => {
         document.querySelector('main')?.scrollTo({top: 0, behavior: 'smooth'});
       }, [location.pathname]);
     
-      return (
+      return <>
         <div className={styles.root}>
           <TabRow />
           <main
@@ -24,7 +26,9 @@ const router = createMemoryRouter([
             children={<Outlet />}
           />
         </div>
-      );
+        <Tooltip id="tooltip" className={styles.tooltip} float place="bottom" offset={20} noArrow />
+        <Toasts />
+      </>;
     },
     children: [
       {
@@ -67,11 +71,5 @@ const router = createMemoryRouter([
 });
 
 export const App = () => {
-  usePotionWatcher();
-
-  return <>
-    <RouterProvider router={router} />
-    <Tooltip id="tooltip" className={styles.tooltip} float place="bottom" offset={20} noArrow />
-    <Toasts />
-  </>;
+  return <RouterProvider router={router} />;
 };
