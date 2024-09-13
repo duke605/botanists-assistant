@@ -35,7 +35,7 @@ export const ErrorBoundary = () => {
         <Button onClick={copy}>Copy to clipboard</Button>
       </div>
       <p style={{width: '90vw', textAlign: 'center', margin: 0}}>
-        If you still see this page after closing, reopening, uninstalling, and reinstalling the app, use the clear state button to clear out persisted state. This will clear your banked items, planned potions, potion planner settings, and item prices.
+        If you still see this page after closing, reopening, uninstalling, and reinstalling the app, use the clear storage button to clear out persisted state. This will clear your banked items, planned potions, potion planner settings, and item prices.
       </p>
     </Stack>
   );
