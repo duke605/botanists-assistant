@@ -51,25 +51,37 @@ interface CalculateInputOptionsWithInventory extends CalculationOptions {
 }
 
 interface CalculateInputsContext {
-  inputs: Record<ItemId, number>;
+  inputs: Counter<ItemId>;
   exp: number;
   ticks: number;
   inventories: number;
 }
 
+class Counter<T> extends Map<T, number> {
+  add = (key: T, delta: number) => {
+    const curr = this.get(key) ?? 0;
+    return this.set(key, curr + delta);
+  }
+
+  sub = (key: T, delta: number) => {
+    return this.add(key, -delta);
+  }
+
+  get = (key: T) => {
+    return super.get(key) ?? 0;
+  }
+}
+
 class Inventory {
-  private inventory: Record<PageId, DoseOrQty>;
+  private inventory = new Counter<PageId>();
 
   constructor(inventory: Record<ItemId, number>) {
-    this.inventory = Object.entries(inventory).reduce((acc, [ itemId, qty ]) => {
+    for (const [ itemId, qty ] of Object.entries(inventory)) {
       const item = itemsById.get(+itemId);
-      if (!item) return acc;
-
-      acc[item.pageId] ??= 0;
-      acc[item.pageId] += (item.doses ?? 1) * qty;
-
-      return acc;
-    }, {} as Record<PageId, number>);
+      if (!item) continue;
+  
+      this.inventory.add(item.pageId, (item.doses ?? 1) * qty);
+    }
   }
 
   /**
@@ -78,10 +90,10 @@ class Inventory {
    * cover `n` then the returned number will be 0
    */
   take = (pageId: number, n: DoseOrQty) => {
-    const amountInInventory = this.inventory[pageId] ?? 0;
+    const amountInInventory = this.inventory.get(pageId)
     const maxToTake = Math.min(n, amountInInventory);
 
-    this.inventory[pageId] = amountInInventory - maxToTake;
+    this.inventory.sub(pageId, maxToTake);
 
     return n - maxToTake;
   }
@@ -106,7 +118,7 @@ class Inventory {
    * Sets an item's dose or quantity
    */
   setItemDoq = (pageId: number, doq: number) => {
-    this.inventory[pageId] = doq;
+    this.inventory.set(pageId, doq);
   }
 }
 
@@ -156,9 +168,13 @@ export class Page {
       if (!startingRecipe) throw new Error('recipe_not_found');
     }
 
-    const inputs: Record<ItemId, Quantity> = {};
     const inventory = new Inventory(options?.inventory ?? {});
-    const context = {inputs, exp: 0, ticks: 0, inventories: 0};
+    const context = {
+      inputs: new Counter<ItemId>(),
+      exp: 0,
+      ticks: 0,
+      inventories: 0,
+    };
 
     // Setting the target potion's quantity/dose to 0 since that's what we want to make
     // on top of the potions we already have banked
@@ -172,10 +188,10 @@ export class Page {
     return {
       exp: context.exp,
       ticks: context.ticks,
-      inputs: Object.entries(inputs).map(([ itemId, quantity ]) => ({
+      inputs: context.inputs.entries().map(([ itemId, quantity ]) => ({
         item: itemsById.get(+itemId)!,
         quantity,
-      })),
+      })).toArray(),
     };
   }
 }
@@ -419,8 +435,7 @@ export class Recipe {
     context.exp += this.calculateExp(options) * operationsNeeded;
     context.ticks += this.calculateTicksForOperations(operationsNeeded, options);
     context.inventories += Math.ceil(operationsNeeded / this.operationsPerInventory);
-    context.inputs[itemNeeded.id] ??= 0;
-    context.inputs[itemNeeded.id] += Math.ceil(quantityNeeded);
+    context.inputs.add(itemNeeded.id, Math.ceil(quantityNeeded));
     
     for (const input of this.inputs) {
       let inputQtyNeeded = operationsNeeded * input.quantity;
@@ -439,8 +454,7 @@ export class Recipe {
 
         if (inputQtyNeeded === 0) continue;
 
-        context.inputs[input.itemId] ??= 0;
-        context.inputs[input.itemId] += Math.ceil(inputQtyNeeded);
+        context.inputs.add(input.itemId, Math.ceil(inputQtyNeeded));
         continue;
       }
 

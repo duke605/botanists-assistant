@@ -16,10 +16,11 @@ export const ItemListingPage = (props: ItemListingPageProps) => {
     {!props.items.length && <p className={styles.noItemsDesc} children={props.description} />}
     {!!props.items.length && (
       <ItemTable
-        onEdit={props.onEdit}
         items={props.items}
         showAlternateRecipes={props.showAlternateRecipes}
         options={props.options}
+        columnNameOverrides={props.columnNameOverrides}
+        disabled={props.disabled}
       />)}
   </>
 }

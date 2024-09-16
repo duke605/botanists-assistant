@@ -5,3 +5,12 @@
   gap: 8px;
   align-items: center;
 }
+
+.help {
+  grid-column: span 2;
+  font-size: 13px;
+  color: var(--text-color-muted);
+  opacity: 0.9;
+  margin-top: -6px;
+  max-width: 400px;
+}

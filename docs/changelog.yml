@@ -1,3 +1,10 @@
+2024-09-15:
+  - Added item prices page to allow fetching and managing of item prices
+  - Item prices can now be locked:
+    - When an item's price is locked, when prices are fetched, the locked prices will not be updated
+  - Base input cost, profit/loss, and GP/xp calculations at the top of the planned potions confirmation page will now show up if profit/loss is not 0
+  - GP/xp calculation on the planned potions confirmation page now shows 2 decimal places
+  - Changed the info icons on the potion planner page
 2024-09-14:
   - Changed meta icons for profit/loss and base input cost on the planned potions confirmation page
   - Added the ability to manually add/edit banked items

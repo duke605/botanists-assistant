@@ -1,13 +1,14 @@
-import { Button, Modal } from '@lib/components';
+import { Button, Checkbox, Modal } from '@lib/components';
 import { FormEvent, Fragment, ReactNode, useCallback, useState } from 'react';
 import styles from './useFormModal.module.css';
 
 interface Input {
   label: string;
-  startingValue?: string;
   placeholder?: string;
   name: string;
   required?: boolean;
+  startingValue?: string;
+  help?: string;
 }
 
 interface SelectInput extends Input {
@@ -19,9 +20,14 @@ interface TextInput extends Input {
   type: 'text' | 'number';
 }
 
+interface CheckboxInput extends Omit<Input, 'placeholder' | 'startingValue' | 'required'> {
+  type: 'checkbox';
+  startingValue?: boolean;
+}
+
 interface FormConfig {
   title: string;
-  inputs: (SelectInput | TextInput)[]
+  inputs: (SelectInput | TextInput | CheckboxInput)[]
 }
 
 export const useFormModal = () => {
@@ -57,7 +63,7 @@ export const useFormModal = () => {
                   <option key={o.value} value={o.value}>{o.label}</option>
                 )}
               </select>
-            ) : (
+            ): (input.type === 'text' || input.type === 'number') ? (
               <input
                 type={input.type}
                 name={input.name}
@@ -65,7 +71,14 @@ export const useFormModal = () => {
                 required={input.required}
                 placeholder={input.placeholder}
               />
+            ): input.type === 'checkbox' && (
+              <Checkbox
+                style={{justifySelf: 'start'}}
+                name={input.name}
+                defaultChecked={input.startingValue}
+              />
             )}
+            {input.help && <span className={styles.help}>{input.help}</span>}
           </Fragment>)}
           <div style={{gridColumn: 'span 2', justifySelf: 'center'}}>
             <Button type="submit">Done</Button>

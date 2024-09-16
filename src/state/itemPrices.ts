@@ -5,12 +5,14 @@ import { Item } from '@lib/potions';
 
 export interface ItemPricesState {
   itemPrices: Map<string, number>;
+  pinnedItems: Set<string>;
   lastUpdated: number;
   fetching: boolean;
 }
 
 interface ItemPricesJsonState {
   itemPrices: {[itemName: string]: number};
+  pinnedItems: string[];
   lastUpdated: number;
 }
 
@@ -18,8 +20,6 @@ interface ItemPricesJsonState {
  * Converts the object to a map where the item name is the key. Ignores items
  * that start and end with % (These are metadata entries). Names of items are
  * lower cased
- * 
- * @param json 
  */
 const convertToMap = (json: {[itemName: string]: number}) => {
   const map = new Map<string, number>();
@@ -49,9 +49,11 @@ const convertToObject = (map: Map<string, number>) => {
 
 export const useItemPrices = create(persist(combine({
   itemPrices: new Map(),
+  pinnedItems: new Set(),
   lastUpdated: 0,
   fetching: false,
 } as ItemPricesState, (set, get) => ({
+
   /**
    * Fetches the GE prices of items. If item prices have not been updated since last
    * fetch the state will not be updated.
@@ -70,12 +72,28 @@ export const useItemPrices = create(persist(combine({
     try {
       const response = await fetch(url).then(r => r.json());
       const lastUpdated = response['%LAST_UPDATE%'];
-
-      // Checking if there has been an update since last time. If not returning to save compute
-      if (lastUpdated === get().lastUpdated) return get().itemPrices;
+      const oldItemPrices = get().itemPrices;
 
       const itemPrices = convertToMap(response);
-      set({lastUpdated, itemPrices});
+
+      // Setting the price of the pinned items to the old values
+      let reinitializedPinnedItems = false;
+      let pinnedItems = get().pinnedItems;
+      for (const pinnedItem of pinnedItems) {
+        const oldPrice = oldItemPrices.get(pinnedItem);
+
+        // Deleting the pin if there is no price for the item. Should never happen but just in case
+        if (oldPrice === undefined) {
+          pinnedItems = !reinitializedPinnedItems ? new Set(pinnedItem) : pinnedItems;
+          reinitializedPinnedItems = true;
+          pinnedItems.delete(pinnedItem);
+          continue;
+        }
+
+        itemPrices.set(pinnedItem, oldPrice);
+      }
+
+      set({lastUpdated, itemPrices, pinnedItems});
 
       return itemPrices;
     } finally {
@@ -84,17 +102,49 @@ export const useItemPrices = create(persist(combine({
   },
 
   /**
-   * Gets the price of an item. If the item is not found undefined is returned
+   * Sets the price of an item. Pin indicates if the price should be updated or not when
+   * item prices are fetched. If pin is true, the price of the item will not be updated.
+   */
+  setItemPrice(itemName: string, price: number, pin = false) {
+    itemName = itemName.toLowerCase();
+    let { pinnedItems, itemPrices } = get();
+
+    if (pinnedItems.has(itemName) !== pin) {
+      pinnedItems = new Set(pinnedItems);
+      pin ? pinnedItems.add(itemName) : pinnedItems.delete(itemName);
+    }
+
+    if (itemPrices.get(itemName) !== price) {
+      itemPrices = new Map(itemPrices);
+      itemPrices.set(itemName, price);
+    }
+
+    set({pinnedItems, itemPrices}); 
+  },
+
+  /**
+   * @returns true if the item's price is pinned, false otherwise
+   */
+  isItemPinned(item: Item) {
+    const itemName = item.name.toLowerCase();
+
+    return get().pinnedItems.has(itemName);
+  },
+
+  /**
+   * Gets the price of an item. If there is no GE price for the item then undefined is returned
    */
   getPriceForItem(item: Item) {
-    return get().itemPrices.get(item.name.toLowerCase());
-  }
+    const { itemPrices } = get();
+    return itemPrices.get(item.name.toLowerCase());
+  },
 })), createCustomJSONStorage({
   version: 1,
   name: 'item-prices',
   transform: (jsonState: StorageValue<ItemPricesJsonState>): any => {
     const typedStorageValue = jsonState as unknown as StorageValue<ItemPricesState>;
     typedStorageValue.state.itemPrices = convertToMap(jsonState.state.itemPrices);
+    typedStorageValue.state.pinnedItems = new Set(jsonState.state.pinnedItems ?? []);
     
     return typedStorageValue;
   },
@@ -105,6 +155,7 @@ export const useItemPrices = create(persist(combine({
         ...value.state,
         ...{fetching: undefined},
         itemPrices: convertToObject(value.state.itemPrices),
+        pinnedItems: value.state.pinnedItems.values().toArray(),
       },
     };
   },

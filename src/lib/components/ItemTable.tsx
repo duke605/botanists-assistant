@@ -20,15 +20,19 @@ export interface ItemTableItem {
   doq: number;
   id: number;
   image: string;
-  editable?: boolean;
+  onEdit?: () => void;
   recipes?: RecipeResult[];
+
+  doqDisplay?: ReactNode;
+  nameDisplay?: ReactNode;
 }
 
 export interface ItemTableProps {
   items: ItemTableItem[];
   showAlternateRecipes?: boolean;
   options?: ReactNode;
-  onEdit?: (id: number) => void;
+  columnNameOverrides?: readonly [string | undefined, string | undefined];
+  disabled?: boolean;
 }
 
 interface ItemTooltipProps {
@@ -118,11 +122,11 @@ export const ItemTable = (props: ItemTableProps) => {
         {props.options && <TableCell className={styles.optionsRow} children={props.options} />}
         <TableCell></TableCell>
         <TableCell style={{display: 'flex', justifyContent: 'space-between'}}>
-          Name
+          {props.columnNameOverrides?.[0] ?? 'Name'}
           <Sort direction={sortColumn !== 'name' ? undefined : sortDirection} className={styles.sort} onClick={() => progressSort('name')} />
         </TableCell>
         <TableCell style={{display: 'flex', justifyContent: 'space-between'}}>
-          Quantity
+          {props.columnNameOverrides?.[1] ?? 'Quantity'}
           <Sort direction={sortColumn !== 'qty' ? undefined : sortDirection} className={styles.sort} onClick={() => progressSort('qty')} />
         </TableCell>
       </TableHead>
@@ -131,16 +135,23 @@ export const ItemTable = (props: ItemTableProps) => {
             <TableCell style={{lineHeight: 0, fontSize: 0, justifyContent: 'center'}}><img src={i.image} /></TableCell>
             <TableCell style={{display: 'flex', justifyContent: 'space-between'}}>
               {(i.recipes?.length ?? 0) >= 1 ? <>
-                <span data-tooltip-id={`itemToolip-${i.id}`} className={styles.linkLike}>{i.name}</span>
+                <span data-tooltip-id={`itemToolip-${i.id}`} className={styles.linkLike}>{i.nameDisplay ?? i.name}</span>
                 <ItemTooltip recipes={i.recipes!} id={`itemToolip-${i.id}`} showAlternateRecipes={props.showAlternateRecipes} />
               </> : (
-                <span>{i.name}</span>
+                <span>{i.nameDisplay ?? i.name}</span>
               )}
-              {!!i.editable && !!props.onEdit && (
-                <img src={quillImage} className={styles.edit} data-tooltip-id='tooltip' data-tooltip-content="Edit" onClick={() => props.onEdit!(i.id)} />
+              {!!i.onEdit && (
+                <button
+                  onClick={i.onEdit}
+                  data-tooltip-id='tooltip'
+                  data-tooltip-content="Edit"
+                  className={styles.edit}
+                  children={<img src={quillImage} />}
+                  disabled={props.disabled}
+                />
               )}
             </TableCell>
-            <TableCell style={{justifyContent: 'end'}}>{i.doq.toLocaleString()}</TableCell>
+            <TableCell style={{justifyContent: 'end'}}>{i.doqDisplay ?? i.doq.toLocaleString()}</TableCell>
           </Fragment>
         )}
     </Table>

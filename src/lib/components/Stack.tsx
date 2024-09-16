@@ -1,4 +1,5 @@
 import { CSSProperties, ReactNode } from 'react';
+import classNames from 'classnames';
 import styles from './Stack.module.css';
 
 interface StackProps {
@@ -10,6 +11,7 @@ interface StackProps {
   alignContent?: CSSProperties['alignContent'];
   justifyContent?: CSSProperties['justifyContent'];
   justifyItems?: CSSProperties['justifyItems'];
+  className?: string;
 }
 
 const SPACINGS = {
@@ -30,7 +32,7 @@ export const Stack = (props: StackProps) => {
 
   return (
     <div
-      className={styles.root}
+      className={classNames(styles.root, props.className)}
       children={props.children}
       style={{
         '--direction': direction,

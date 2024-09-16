@@ -7,7 +7,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useHumanTime } from '@lib/hooks';
 import herbloreImage from '@assets/herblore.png';
 import timerImage from '@assets/timer.png';
-import coinsImage from '@assets/Coins_4.png';
+import coinsImage from '@assets/coinStack.png';
 import coins10kImage from '@assets/Coins_10000.png';
 import profitLossImage from '@assets/profitLoss.png';
 import styles from './PlannedPotionConfirmation.module.css';
@@ -24,14 +24,12 @@ export const PlannedPotionsConfirmation = () => {
     exp,
     ticks,
     targetPotion,
-    useInventory,
   }: {
     targetPotion: TableProps['inputs'][number],
     inputs: TableProps['inputs'];
     exp: number;
     settings: PlannedPotionsState['settings'];
     ticks: number;
-    useInventory: boolean;
   } = useLocation().state;
   const navigate = useNavigate();
   const [ setPotions, setDoseMode, doseMode ] = usePlannedPotions(
@@ -87,8 +85,6 @@ export const PlannedPotionsConfirmation = () => {
     }));
   }, [inputs, settings.recipePaths]);
   const baseInputCost = useMemo(() => {
-    if (useInventory) return;
-
     let total = 0;
 
     for (const input of inputs) {
@@ -97,11 +93,11 @@ export const PlannedPotionsConfirmation = () => {
     }
 
     return total;
-  }, [inputs, targetPotion, itemPrices, useInventory]);
-  const outputPrice = useInventory ? undefined : (getPriceForItem(targetPotion.item) ?? 0) * targetPotion.quantity;
-  const profitLoss = useInventory ? undefined : outputPrice! - baseInputCost!;
+  }, [inputs, targetPotion, itemPrices]);
+  const outputPrice = (getPriceForItem(targetPotion.item) ?? 0) * targetPotion.quantity;
+  const profitLoss = outputPrice! - baseInputCost!;
   const expPerHour = Math.round(exp / (ticks * 600 / 1000 / 60 / 60) * 100) / 100;
-  const gpPerExp = useInventory ? undefined : Math.round(profitLoss! / exp);
+  const gpPerExp = Math.round(profitLoss! / exp * 100) / 100;
 
   const confirm = useCallback(() => {
     // Filtering out non-potion inputs and converting potion inputs to doses (if they use doses)
@@ -133,7 +129,7 @@ export const PlannedPotionsConfirmation = () => {
         </div>
         {expPerHour.toLocaleString()}
       </span>
-      {!useInventory && <>
+      {outputPrice !== 0 && <>
         <span
           className={styles.metaItem}
           style={{cursor: !fetchingPrices ? 'pointer' : undefined}}
@@ -166,7 +162,7 @@ export const PlannedPotionsConfirmation = () => {
         >
           <div className={styles.imageContainer}>
             <img src={herbloreImage} />
-            <img src={coinsImage} className={styles.secondaryImage} />
+            <img src={coinsImage} className={styles.secondaryImage} style={{height: '16px'}}/>
           </div>
           <span
             style={{color: gpPerExp! > 0 ? '#0f0' : '#f00'}}

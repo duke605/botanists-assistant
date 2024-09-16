@@ -1,6 +1,6 @@
 import { TabRow } from './components/TabRow/TabRow';
 import { createMemoryRouter, RouterProvider, Outlet, useLocation } from 'react-router';
-import { BankedItems, Changelog, PlannedPotions, PlannedPotionsConfirmation, PlannedPotionsSetup, Toasts, ErrorBoundary } from './components';
+import { BankedItems, Changelog, PlannedPotions, PlannedPotionsConfirmation, PlannedPotionsSetup, Toasts, ErrorBoundary, ItemPrices } from './components';
 import { usePotionWatcher } from './hooks';
 import { Tooltip } from 'react-tooltip';
 import { useEffect } from 'react';
@@ -59,6 +59,10 @@ const router = createMemoryRouter([
       {
         path: '/inventory',
         Component: BankedItems,
+      },
+      {
+        path: '/item_prices',
+        Component: ItemPrices,
       },
       {
         path: '/changelog',

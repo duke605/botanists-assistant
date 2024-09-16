@@ -6,7 +6,7 @@ import { useItemFinder } from './hooks';
 import { useShallow } from 'zustand/react/shallow';
 import { toast } from 'react-toastify';
 import { useFormModal } from '@lib/hooks/useFormModal';
-import { items } from '@lib/potions';
+import { Item, items } from '@lib/potions';
 import plusImage from '@assets/plus.png';
 import styles from './BankedItems.module.css';
 
@@ -18,13 +18,39 @@ export const BankedItems = () => {
     useShallow(s => [s.entries, s.clearItems, s.addItem, s.setItemQuantity]),
   );
   const { findItems, cancelSearching, isSearching } = useItemFinder();
+
+  /**
+   * Prompts the user with a modal that allows them to edit the item's banked quantity. If
+   * the form is successfully submitted, the qty entered in the prompt will be persisted
+   */
+  const editItem = useCallback((item: Item, currentQty: number) => async () => {
+    const response = await showModal({
+      title: 'Edit item',
+      inputs: [
+        {
+          label: 'Quantity',
+          type: 'number',
+          name: 'quantity',
+          required: true,
+          startingValue: `${currentQty}`,
+        },
+      ],
+    }).catch(() => 'cancelled' as const);
+    if (response === 'cancelled') return;
+
+    const qty = +response.get('quantity')!;
+    if (isNaN(qty)) return;
+
+    setItemQuantity(item.id, qty);
+  }, []);
+
   const items = useMemo(() => {
     return rawItems.map(i => ({
       name: i.item.name,
       id: i.item.id,
       doq: i.qty,
       image: i.item.imageUrl,
-      editable: true,
+      onEdit: editItem(i.item, i.qty),
       recipes: i.item.recipes.map(r => ({
         name: r.name,
         inputs: r.inputs.map(i => ({qty: i.quantity, name: i.item.name, image: i.item.imageUrl})),
@@ -46,30 +72,6 @@ export const BankedItems = () => {
       }
     }
   }, [findItems]);
-
-  const onEdit = useCallback(async (id: number) => {
-    const item = items.find(i => i.id === id);
-    if (!item) return;
-
-    const response = await showModal({
-      title: 'Edit item',
-      inputs: [
-        {
-          label: 'Quantity',
-          type: 'number',
-          name: 'quantity',
-          required: true,
-          startingValue: `${item.doq}`,
-        },
-      ],
-    }).catch(() => 'cancelled' as const);
-    if (response === 'cancelled') return;
-
-    const qty = +response.get('quantity')!;
-    if (isNaN(qty)) return;
-
-    setItemQuantity(id, qty);
-  }, [items]);
 
   /**
    * Shows the modal for adding items
@@ -107,7 +109,6 @@ export const BankedItems = () => {
   return <>
     <Heading>Inventory</Heading>
     <ItemListingPage
-      onEdit={onEdit}
       items={items}
       buttons={<>
         {items.length > 0 && !isSearching && <Button danger onClick={clearItems}>Clear items</Button>}

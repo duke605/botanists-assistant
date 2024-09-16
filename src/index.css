@@ -2,7 +2,9 @@
   font-family: "Noto Sans";
   color: #AED0E0;
   font-size: 14px;
-  text-shadow: 0.5px 0.5px 0px #000; 
+  text-shadow: 0.5px 0.5px 0px #000;
+
+  --text-color-muted: #828282;
 }
 
 * {

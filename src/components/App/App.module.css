@@ -58,7 +58,7 @@
 }
 
 .tooltip[id="tooltip"] span[data-muted] {
-  color: #828282;
+  color: var(--text-color-muted);
   font-size: 12px;
 }
 
