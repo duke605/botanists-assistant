@@ -1,4 +1,4 @@
-import { captureHold, mixColor, Rect } from 'alt1';
+import { mixColor } from 'alt1';
 import ChatboxReader, { ChatLine } from 'alt1/chatbox';
 import dayjs from 'dayjs';
 

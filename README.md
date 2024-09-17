@@ -18,7 +18,6 @@ Welcome to the Botanist's Assistant Plugin for Alt1! This tool is designed to as
    - Copy and paste this URL into Alt1's browser app `alt1://addapp/https://duke605.github.io/botanists-assistant/assets/appconfig.json`
 
 ## Limitations
- - Legacy UI is not supported
  - Potion tracking requires chat timestamps to be enabled
  - Potion tracking requires game chat to be unfiltered
  - Quest potions are not supported
