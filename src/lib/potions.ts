@@ -417,20 +417,16 @@ export class Recipe {
   }
 
   calculateInputs = (quantityNeeded: number, context: CalculateInputsContext, options?: CalculationOptions & {inventory?: Inventory}, itemNeeded = this.output.item) => {
-    // Converting the potion to doses and then back into quantity for the output item if the item needed and
-    // output item are different. (They are still the same potion just different dosages)
-    if (itemNeeded.doses && this.output.item.id !== itemNeeded.id) {
-      if (this.page.id !== itemNeeded.pageId) throw new Error('potion_type_mismatch');
-
-      const dosesNeeded = quantityNeeded * itemNeeded.doses;
-      quantityNeeded = dosesNeeded / this.output.item.doses!;
-    }
-
-    quantityNeeded = options?.inventory?.takeItem(this.output.item, quantityNeeded) ?? quantityNeeded;
+    quantityNeeded = options?.inventory?.takeItem(itemNeeded, quantityNeeded) ?? quantityNeeded;
     if (quantityNeeded <= 0) return;
 
     const outputQuantity = this.output.calculateQuantity(options);
-    const operationsNeeded = Math.ceil(quantityNeeded / outputQuantity);
+
+    // Converting output of recipe to doses
+    const recipeOutputDoses = outputQuantity * (this.output.item.doses ?? 1);
+    const dosesNeeded = quantityNeeded * (itemNeeded.doses ?? 1);
+
+    const operationsNeeded = Math.ceil(dosesNeeded / recipeOutputDoses);
     
     context.exp += this.calculateExp(options) * operationsNeeded;
     context.ticks += this.calculateTicksForOperations(operationsNeeded, options);
