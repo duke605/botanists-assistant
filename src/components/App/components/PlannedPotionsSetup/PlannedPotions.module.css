@@ -28,6 +28,8 @@
   background-size: contain;
   width: 18px;
   height: 18px;
+  min-width: 18px;
+  min-height: 18px;
   font-size: 0;
   line-height: 0;
 }

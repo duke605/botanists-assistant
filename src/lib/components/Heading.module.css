@@ -18,10 +18,17 @@
               url(../../assets/headerMiddle.png) center center repeat content-box;
 }
 
+@media (max-width: 400px) {
+  .root {
+    width: 95%;
+    font-size: 18px;
+  }
+}
+
 .root:not(:first-child) {
   margin-top: 16px;
 }
 
-.noMargin{
+.noMargin {
   margin: 0 auto;
 }
