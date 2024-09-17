@@ -1,22 +1,29 @@
 import { captureHold, captureHoldFullRs, ImgRef, RectLike } from 'alt1';
-import progressDialogLeft from '@assets/progressLeft.png?alt1';
-import progressDialogRight from '@assets/progressRight.png?alt1';
+import progressDialogLeftModern from '@assets/progressLeftModern.png?alt1';
+import progressDialogRightModern from '@assets/progressRightModern.png?alt1';
+import progressDialogLeftLegacy from '@assets/progressLeftLegacy.png?alt1';
+import progressDialogRightLegacy from '@assets/progressRightLegacy.png?alt1';
 import { createWorker } from 'tesseract.js';
+import { findImageWithFallback } from './image';
 
 let pos: RectLike | undefined;
 let workerPromise: ReturnType<typeof createWorker> | undefined;
 
 const ensureProgressDialog = async (img: ImgRef) => {
-  const [ leftImg, rightImg ] = await Promise.all([
-    progressDialogLeft,
-    progressDialogRight,
+  const [ leftImgM, rightImgM, leftImgL, rightImgL ] = await Promise.all([
+    progressDialogLeftModern,
+    progressDialogRightModern,
+    progressDialogLeftLegacy,
+    progressDialogRightLegacy,
   ]);
 
-  const left = img.findSubimage(leftImg)[0];
-  const right = img.findSubimage(rightImg)[0];
-  if (!left || !right) return [false] as const;
+  const [ found, left, legacy ] = findImageWithFallback(img, leftImgM, leftImgL);
+  if (!found) return [false] as const;
 
-  return [true, left, right, rightImg] as const;
+  const right = img.findSubimage(legacy ? rightImgL : rightImgM)[0];
+  if (!right) return [false] as const;
+
+  return [true, left, right, legacy ? rightImgL : rightImgM, legacy] as const;
 }
 
 export const find = async () => {
@@ -44,9 +51,9 @@ export const readTitle = async () => {
   while (!image) {
     if (!pos) {
       const [ pos, modalImage ] = await find();
-      image = modalImage.read(pos!.x + PRODUCT_START_X, pos!.y + PRODUCT_START_Y, 200, 14);
+      image = modalImage.read(pos!.x + PRODUCT_START_X, pos!.y + PRODUCT_START_Y, 200, 15);
     } else {
-      const tmpImage = captureHold(pos.x, pos.y, 200, 14);
+      const tmpImage = captureHold(pos.x, pos.y, 200, 15);
       const [ found ] = await ensureProgressDialog(tmpImage);
 
       // Can't find progress dialog using cached coords. Unsetting cache and trying to find
@@ -56,7 +63,7 @@ export const readTitle = async () => {
         continue;
       }
 
-      image = tmpImage.read(pos!.x + PRODUCT_START_X, pos!.y + PRODUCT_START_Y, 200, 14);
+      image = tmpImage.read(pos!.x + PRODUCT_START_X, pos!.y + PRODUCT_START_Y, 200, 15);
     }
   }
   const worker = await workerPromise;

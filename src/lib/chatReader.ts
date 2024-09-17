@@ -6,7 +6,6 @@ class ChatReader {
   private reader: ChatboxReader;
   private listeners: ((linesOrError: ChatLine | Error) => void)[] = [];
   private intervalId: number;
-  private box: Rect | undefined;
   private _interval: number = 600;
   private lastFullCheck = 0;
 
@@ -35,31 +34,34 @@ class ChatReader {
   }
 
   private findChatbox = async () => {
-    for (let i = 0; !this.box; i++) {
+    for (let i = 0; !this.reader.pos?.mainbox; i++) {
       try {
-        this.box = (this.reader.find()?.mainbox as any)?.rect;
+        this.reader.find()?.mainbox;
       } catch (e) {
         return console.error(e);
       }
 
-      if (!this.box && i >= 2) {
-        return this.sendToListeners(new Error('chatbox_not_found'));
-      } else if (!this.box) {
+      if (!this.reader.find()?.mainbox && i >= 2) {
+        this.sendToListeners(new Error('chatbox_not_found'));
+        return false;
+      } else if (!this.reader.find()?.mainbox) {
         await new Promise(r => setTimeout(r, 1000));
       }
     }
+
+    return true;
   }
 
   private readChat = async () => {
-    if (Date.now() - this.lastFullCheck > 30000 && this.box) {
+    if (Date.now() - this.lastFullCheck > 30000 && this.reader.find()?.mainbox) {
       this.lastFullCheck = Date.now();
-      this.box = undefined;
+      this.reader.pos = null;
     }
-    if (!this.box) await this.findChatbox();
-    if (!this.box) return;
 
-    const capture = captureHold(this.box.x, this.box.y, this.box.width, this.box.height);
-    const lines = this.reader.read(capture);
+    const foundBox = this.findChatbox();
+    if (!foundBox) return;
+
+    const lines = this.reader.read();
     if (!lines || lines.length <= 0) return;
 
     // Processing lines

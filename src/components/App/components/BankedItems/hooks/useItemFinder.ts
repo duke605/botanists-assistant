@@ -1,13 +1,17 @@
 import { getMousePosition, ImgRef, mixColor, Rect, RectLike } from 'alt1';
 import { useCallback, useEffect, useState } from 'react';
-import bankTopLeft from '@assets/bankTopLeft.png?alt1';
-import bankBottomRight from '@assets/bankBottomRight.png?alt1';
-import blank from '@assets/blank.png?alt1';
+import bankTopLeftModern from '@assets/bankTopLeftModern.png?alt1';
+import bankBottomRightModern from '@assets/bankBottomRightModern.png?alt1';
+import bankTopLeftLegacy from '@assets/bankTopLeftLegacy.png?alt1';
+import bankBottomRightLegacy from '@assets/bankBottomRightLegacy.png?alt1';
+import blankModern from '@assets/blankModern.png?alt1';
+import blankLegacy from '@assets/blankLegacy.png?alt1';
 import { getQuantity } from '@lib/quantity';
 import TooltipReader from 'alt1/tooltip';
 import Signal from '@lib/classes/Signal';
 import { itemsByName } from '@lib/potions';
 import { useBankedItemInputs } from '@state';
+import { findImageWithFallback } from '@lib/image';
 
 export const useItemFinder = () => {
   const [ signal, setSignal ] = useState<Signal>();
@@ -51,18 +55,26 @@ export const useItemFinder = () => {
       const SLOT_WIDTH = 38;
       const SLOT_HEIGHT = 34;
 
-      const [ btl, bbr, bl ] = await Promise.all([bankTopLeft, bankBottomRight, blank]);
+      const [ btl, bbr, bl, btlL, bbrL, blL ] = await Promise.all([
+        bankTopLeftModern,
+        bankBottomRightModern,
+        blankModern,
+        bankTopLeftLegacy,
+        bankBottomRightLegacy,
+        blankLegacy,
+      ]);
+      
+      const [ found, bbrArea, legacy ] = findImageWithFallback(haystack, bbr, bbrL);
+      if (!found) throw new Error('bank_ui_not_found');
+      
+      const btlArea = legacy ? haystack.findSubimage(btlL)[0] : haystack.findSubimage(btl)[0];
+      if (!btlArea) throw new Error('bank_ui_not_found');
+      
       const bank: RectLike = {x: 0, y: 0, height: 0, width: 0};
-
-      const bbrAreas = haystack.findSubimage(bbr);
-      if (!bbrAreas.length) throw new Error('bank_ui_not_found');
-
-      const btlAreas = haystack.findSubimage(btl);
-      if (!btlAreas.length) throw new Error('bank_ui_not_found');
-      bank.x = btlAreas[0].x + TOP_LEFT_OFFSET_X;
-      bank.y = btlAreas[0].y + TOP_LEFT_OFFSET_Y;
-      bank.width = bbrAreas[0].x + BOTTOM_RIGHT_OFFSET_X - bank.x;
-      bank.height = bbrAreas[0].y + BOTTOM_RIGHT_OFFSET_Y - bank.y;
+      bank.x = btlArea.x + TOP_LEFT_OFFSET_X;
+      bank.y = btlArea.y + TOP_LEFT_OFFSET_Y;
+      bank.width = bbrArea.x + BOTTOM_RIGHT_OFFSET_X - bank.x;
+      bank.height = bbrArea.y + BOTTOM_RIGHT_OFFSET_Y - bank.y;
       const xSlots = Math.floor((bank.width - X_PADDING * 2 - COLUMN_GAP) / (SLOT_WIDTH + COLUMN_GAP));
       const ySlots = Math.floor((bank.height - TOP_PADDING - ROW_GAP) / (SLOT_HEIGHT + ROW_GAP));
       const slots = [] as {rect: Rect, item: string}[];
@@ -71,7 +83,7 @@ export const useItemFinder = () => {
         for (let x = 0; x < xSlots; x++) {
           const xCord = X_PADDING + bank.x + (SLOT_WIDTH + COLUMN_GAP) * x;
           const yCord = TOP_PADDING + bank.y + (SLOT_HEIGHT + ROW_GAP) * y;
-          if (haystack.findSubimage(bl, xCord, yCord, SLOT_WIDTH, SLOT_HEIGHT)?.length) break outer;
+          if (haystack.findSubimage(legacy ? blL : bl, xCord, yCord, SLOT_WIDTH, SLOT_HEIGHT)?.length) break outer;
 
           slots[y * xSlots + x] = {rect: new Rect(xCord, yCord, SLOT_WIDTH, SLOT_HEIGHT), item: ''};
         }
