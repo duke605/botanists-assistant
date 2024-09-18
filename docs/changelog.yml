@@ -1,5 +1,6 @@
 2024-09-17:
-  - Fixed potion calculation math
+  - Fixed potion calculation math:
+    - Thanks @joecrase for reporting this
   - Improved size responsiveness of headings
 2024-09-16:
   - Added support for legacy UI (skin and mode)
@@ -14,7 +15,8 @@
   - Changed meta icons for profit/loss and base input cost on the planned potions confirmation page
   - Added the ability to manually add/edit banked items
 2024-09-12:
-  - Fixed issue that cause NaN when the "Subtract materials from inventory" settings was check when calculating inputs
+  - Fixed issue that cause NaN when the "Subtract materials from inventory" settings was check when calculating inputs:
+    - Thanks @joecrase for reporting this
   - Changed language on potion planner page from potions to materials
   - Added error boundary page
   - Added source maps to build
