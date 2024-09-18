@@ -52,6 +52,10 @@ const alt1ImageLoader: Plugin = {
 export default defineConfig({
   plugins: [alt1ImageLoader, virtualItemImages(), virtualChangelog(), react()],
   base: '/botanists-assistant',
+  define: {
+    __MIXPANEL_API_HOST__: JSON.stringify(process.env.MIXPANEL_API_HOST),
+    __MIXPANEL_TOKEN__: JSON.stringify(process.env.MIXPANEL_TOKEN),
+  },
   build: {
     sourcemap: true,
     assetsInlineLimit: (filepath) => {

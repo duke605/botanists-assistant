@@ -27,6 +27,9 @@ jobs:
         run: |
           npm i
       - name: Build production bundle
+        env:
+          MIXPANEL_API_HOST: ${{ vars.MIXPANEL_API_HOST }}
+          MIXPANEL_TOKEN: ${{ secrets.MIXPANEL_TOKEN }}
         run: |
           npm run build
       - name: Archive artifact

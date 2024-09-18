@@ -2,6 +2,9 @@ declare global {
   interface alt1 extends import('alt1') {}
 }
 
+declare const __MIXPANEL_API_HOST__: string;
+declare const __MIXPANEL_TOKEN__: string;
+
 declare module '*?alt1' {
   const src: Promise<ImageData>;
   export default src;
