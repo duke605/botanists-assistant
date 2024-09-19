@@ -1,12 +1,15 @@
-import { useAggregatedPlannedPotions, usePlannedPotions, usePlannedPotionsProgress } from '@state';
+import { useAggregatedPlannedPotions, useMisc, usePlannedPotions, usePlannedPotionsProgress } from '@state';
 import { Button, Heading, ItemListingPage, DoseModeOption, Progress, Stack } from '@lib/components';
 import { useNavigate } from 'react-router';
 import { useShallow } from 'zustand/react/shallow';
 import { useMemo } from 'react';
+import errorBtnImage from '@assets/error_button.png';
+import okBtnImage from '@assets/ok_button.png';
 import styles from './PlannedPotions.module.css';
 
 
 export const PlannedPotions = () => {
+  const cannotFindChatbox = useMisc(s => s.cannotFindChatbox)
   const navigate = useNavigate();
   const [ recipePaths, aggregateByPage, clearPotions, setAggregateByPage ] = usePlannedPotions(
     useShallow(s => [s.settings.recipePaths, s.aggregateByPage, s.clearPotions, s.setAggregateByPage]),
@@ -34,6 +37,15 @@ export const PlannedPotions = () => {
       {hasPotionsToMake && <Stack spacing="loose" direction="horizontal" alignItems="center">
         <span style={{position: 'relative', top: '-3px'}}>Progress:</span>
         <Progress value={progress} text={`${Math.round(progress * 1000) / 10}%`} />
+        <img
+          src={cannotFindChatbox ? errorBtnImage : okBtnImage}
+          style={{objectFit: 'contain', height: '26px'}}
+          data-tooltip-id="tooltip"
+          data-tooltip-html={!cannotFindChatbox
+            ? 'Tracking potions mixing events'
+            : 'Unable to track potion mixing events<br /><span data-muted>Chatbox cannot be found</span>'
+          }
+        />
       </Stack>}
       <ItemListingPage
         items={potions}

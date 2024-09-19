@@ -1,3 +1,5 @@
+2024-09-18:
+  - Added status indicator to planned potion page to indicate if potions are being tracked
 2024-09-17:
   - Fixed potion calculation math:
     - Thanks @joecrase for reporting this

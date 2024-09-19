@@ -12,6 +12,7 @@ import Signal from '@lib/classes/Signal';
 import { itemsByName } from '@lib/potions';
 import { useBankedItemInputs } from '@state';
 import { findImageWithFallback } from '@lib/image';
+import { track } from '@lib/mixpanel';
 
 export const useItemFinder = () => {
   const [ signal, setSignal ] = useState<Signal>();
@@ -88,6 +89,13 @@ export const useItemFinder = () => {
           slots[y * xSlots + x] = {rect: new Rect(xCord, yCord, SLOT_WIDTH, SLOT_HEIGHT), item: ''};
         }
       }
+
+      track('Bank import', {
+        slots: slots.length,
+        bank_width: bank.width,
+        bank_height: bank.height,
+        legacy,
+      });
 
       const GROUP_NAME = 'bankPotions';
       alt1.overLaySetGroup(GROUP_NAME);

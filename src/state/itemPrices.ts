@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { combine, persist, StorageValue } from 'zustand/middleware';
 import { createCustomJSONStorage } from './state';
 import { Item } from '@lib/potions';
+import { track } from '@lib/mixpanel';
 
 export interface ItemPricesState {
   itemPrices: Map<string, number>;
@@ -61,6 +62,7 @@ export const useItemPrices = create(persist(combine({
    * @returns item prices
    */
   async fetchPrices() {
+    track('Fetch item prices');
     set({fetching: true});
     const url = new URL('https://runescape.wiki');
     url.search = new URLSearchParams({
@@ -106,6 +108,7 @@ export const useItemPrices = create(persist(combine({
    * item prices are fetched. If pin is true, the price of the item will not be updated.
    */
   setItemPrice(itemName: string, price: number, pin = false) {
+    track('Set item price', {price, lock: pin});
     itemName = itemName.toLowerCase();
     let { pinnedItems, itemPrices } = get();
 

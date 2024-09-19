@@ -5,10 +5,11 @@ import { App } from './components';
 import appconfig from '@assets/appconfig.json?url';
 import './index.css';
 import 'react-toastify/dist/ReactToastify.css';
-import { track } from '@lib/mixpanel';
+import { engage, track } from '@lib/mixpanel';
 
 if (window.alt1) {
   window.alt1.identifyAppUrl(appconfig);
+  engage('set_once', {first_seen: Date.now()});
   track('Plugin load');
 }
 

@@ -18,6 +18,7 @@ import perfectJujuHerblorePotionIcon from '@assets/Perfect_juju_herblore_potion_
 import wiseIcon from '@assets/Wise.png';
 import { useNavigate } from 'react-router';
 import { Page, pagesById, Recipe, pages } from '@lib/potions';
+import { track } from '@lib/mixpanel';
 import styles from './PlannedPotions.module.css';
 
 const options = pages.filter(p => p.isPotion()).map(potionPage =>
@@ -125,9 +126,38 @@ export const PlannedPotionsSetup = () => {
         return acc;
       }, {}),
     });
-    
-    const targetPotion = inputs.find(i => i.item.pageId === targetPotionPageId);
 
+    const targetPotion = inputs.find(i => i.item.pageId === targetPotionPageId);
+    track('Calculate inputs', {
+      target_potion: targetPotion?.item.name,
+      target_potion_id: targetPotionPageId,
+      use_inventory: useInventory,
+      quantity: qtyToMake,
+      recipe_paths: Object.entries(recipePaths).map(([ pageId, path ]) => {
+        const page = pagesById.get(+pageId);
+        if (!page) return;
+
+        return {potion: page.name, path};
+      }).filter(p => !!p),
+      bonuses: {
+        modified_botanist_mask: modifiedBotanistMask,
+        morytania_legs: morytaniaLegs,
+        botanists_necklace: botanistsNecklace,
+        brooch_of_the_gods: broochOfTheGods,
+        desert_amulet: desertAmulet,
+        envenomed: envenomed,
+        factory_outfit: factoryOutfit,
+        scroll_of_cleansing: scrollOfCleansing,
+        underworld_grimoire: underworldGrimoire,
+        well: well,
+        arbitrary_xp: arbitraryXp,
+        botanists_outfit: botanistsOutfit,
+        meilyr_hour: meilyrHour,
+        perfect_juju_herblore_potion: perfectJujuHerblorePotion,
+        torstol_incense: torstolIncense,
+      },
+    });
+    
     const settings: PlannedPotionsState['settings'] = {recipePaths};
     navigate('/planned_potions/confirm', {
       state: {inputs, settings, exp, ticks, targetPotion, useInventory},

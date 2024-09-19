@@ -1,7 +1,7 @@
 import chatReader from '@lib/chatReader';
 import { itemsByName } from '@lib/potions';
 import { readTitle } from '@lib/progressDialogReader';
-import { usePlannedPotions } from '@state';
+import { useMisc, usePlannedPotions } from '@state';
 import { ChatLine } from 'alt1/chatbox';
 import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
@@ -14,34 +14,8 @@ const extraPotionWellRegex = /^\[.+?\] You mix such a potent potion that you fil
 const extraPotionMaskRegex = /^\[.+?\] Your modified botanist's mask helps you to create an extra potion./;
 const potionNameRegex = /^(?<name>.+)(?: x(?<multi>\d))?/;
 
-const check = (
-  maybeError: Error | unknown,
-  errorType: string,
-  notificationMessage: string,
-  notifyAfter: number,
-  notifyBackoff: number,
-  state: {
-    lastNotified: number;
-    lastSuccess: number;
-  }
-) => {
-  if (!(maybeError instanceof Error) || maybeError.message !== errorType) {
-    state.lastSuccess = Date.now();
-    return;
-  }
-
-  const timeSinceLastSuccess = Date.now() - state.lastSuccess;
-  const timeSinceLastNotification = Date.now() - state.lastNotified;
-
-  if (timeSinceLastSuccess > notifyAfter && timeSinceLastNotification > notifyBackoff) {
-    state.lastNotified = Date.now();
-    toast.error(notificationMessage, {icon: false, autoClose: 5000});
-  }
-
-  throw maybeError;
-}
-
 export const usePotionWatcher = () => {
+  const setCannotFindChatbox = useMisc(s => s.setCannotFindChatbox);
   const [ plannedPotions, decrementPotion ] = usePlannedPotions(
     useShallow(s => [s.potions, s.decrementPotion]),
   );
@@ -68,15 +42,20 @@ export const usePotionWatcher = () => {
 
   const lastDetect = useRef(0);
   const activePotion = useRef('');
-  const chatbox = useRef({lastSuccess: Date.now(), lastNotified: 0});
   const processLine = useCallback(async (lineOrError: ChatLine | Error) => {
-    try {
-      check(lineOrError, 'chatbox_not_found', 'Chat box could not be found', 4000, 45000, chatbox.current);
-      if (lineOrError instanceof Error) throw lineOrError;
-    } catch (e) {
-      console.error(e);
+    if (lineOrError instanceof Error) {
+      let handled = false;
+      if (lineOrError.message === 'chatbox_not_found') {
+        setCannotFindChatbox(true);
+        handled = true;
+      }
+
+      !handled && console.log(lineOrError);
       return;
     }
+
+    // Resetting error when message is successfully received
+    setCannotFindChatbox(false);
 
     const ambiguousMixing = lineOrError.text.match(ambiguousMixingRegex);
     if (ambiguousMixing) {
