@@ -184,7 +184,7 @@ export const PlannedPotionsConfirmation = () => {
       items={secondaries}
     />
     <div className={styles.buttonRow}>
-      <Button danger onClick={() => navigate(-1)}>Cancel</Button>
+      <Button variation="danger" onClick={() => navigate(-1)}>Cancel</Button>
       <Button onClick={confirm}>Confirm</Button>
     </div>
   </>

@@ -31,7 +31,7 @@ export const ErrorBoundary = () => {
         {error.stack ?? `${error}`}
       </p>
       <div style={{display: 'grid', gap: '8px', gridTemplateColumns: '1fr 1fr', width: '90vw'}}>
-        <Button onClick={clearState} danger>Clear storage</Button>
+        <Button onClick={clearState} variation="danger">Clear storage</Button>
         <Button onClick={copy}>Copy to clipboard</Button>
       </div>
       <p style={{width: '90vw', textAlign: 'center', margin: 0}}>

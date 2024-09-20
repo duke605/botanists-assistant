@@ -55,7 +55,7 @@ export const PlannedPotions = () => {
           <DoseModeOption checked={aggregateByPage} onChange={setAggregateByPage} />
         </div>}
         buttons={<>
-          {hasPotionsToMake && <Button danger onClick={clearPotions}>Clear potions</Button>}
+          {hasPotionsToMake && <Button variation="danger" onClick={clearPotions}>Clear potions</Button>}
           <Button onClick={() => navigate('/planned_potions/setup')}>Set potions</Button>
         </>}
       />

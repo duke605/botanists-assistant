@@ -1,35 +1,42 @@
 .button {
+  isolation: isolate;
   height: 30px;
   position: relative;
-  background: url(../../assets/buttonRight.png) no-repeat top right / auto 100%,
-              url(../../assets/buttonLeft.png) no-repeat top left / auto 100%,
-              url(../../assets/buttonMiddle.png) content-box top center / auto 100%;
   cursor: pointer;
-  text-align: center;
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
   color: #000;
   font-family: 'trajan-pro-3';
-  text-shadow: 1px 1px 2px #ecc622;
   font-size: 16px;
   margin: 5px;
-  padding: 0px 10px;
-  line-height: 30px;
   user-select: none;
   border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0 1px;
+  gap: 5px;
+  background: linear-gradient(to bottom, var(--top-start), var(--top-end)) repeat-x,
+              linear-gradient(to bottom, var(--bottom-start), var(--bottom-start)) repeat-x;
+  border-radius: 4px;
+  background-size: 1px 50%;
+  background-position: 0 0, 0 100%;
 }
 
-.danger {
-  background-image: url(../../assets/destructiveButtonRight.png),
-                    url(../../assets/destructiveButtonLeft.png),
-                    url(../../assets/destructiveButtonMiddle.png);
-  text-shadow: 1px 1px 2px #c86e3e;
-}
-
-.button:hover {
+.button:not(:disabled):hover {
   filter: brightness(1.2);
 }
 
-.button[disabled] {
-  opacity: .5;
-  cursor: default;
+.button:disabled {
+  filter: brightness(0.6);
+  cursor: not-allowed;
+}
+
+.buttonArrow {
+  z-index: -1;
   pointer-events: none;
+  position: relative;
+  object-fit: cover;
+  height: 100%;
 }

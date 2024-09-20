@@ -111,10 +111,10 @@ export const BankedItems = () => {
     <ItemListingPage
       items={items}
       buttons={<>
-        {items.length > 0 && !isSearching && <Button danger onClick={clearItems}>Clear items</Button>}
+        {items.length > 0 && !isSearching && <Button variation="danger" onClick={clearItems}>Clear items</Button>}
         {items.length === 0 && !isSearching && <Button onClick={onAdd}>Add item</Button>}
         {!isSearching && <Button onClick={importItems}>Import items</Button>}
-        {isSearching && <Button danger onClick={cancelSearching}>Cancel import</Button>}
+        {isSearching && <Button variation="danger" onClick={cancelSearching}>Cancel import</Button>}
       </>}
       options={<Stack direction="horizontal" justifyContent="center" alignItems="center" fullWidth>
         <button className={styles.add} aria-label="Add item" data-tooltip-id="tooltip" data-tooltip-content="Add item" onClick={onAdd}><img src={plusImage} /></button>
